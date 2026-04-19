@@ -52,7 +52,7 @@ export const InsertionSort: AlgorithmDefinition = {
 
         if (array[j] > key) {
           array[j + 1] = array[j];
-          
+
           steps.push({
             numeroPaso: stepCount++,
             tipoOperacion: 'insercion',
