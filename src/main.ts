@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -19,8 +22,10 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = (process.env.FRONTEND_URLS ??
-    'http://localhost:8081,https://brainsort.vercel.app')
+  const allowedOrigins = (
+    process.env.FRONTEND_URLS ??
+    'http://localhost:8081,https://brainsort.vercel.app'
+  )
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
