@@ -8,7 +8,9 @@ export class AlgorithmLibraryCardDto {
   @ApiProperty()
   nombre: string;
 
-  @ApiProperty({ description: 'Descripción corta para tarjeta (máx. 140 caracteres)' })
+  @ApiProperty({
+    description: 'Descripción corta para tarjeta (máx. 140 caracteres)',
+  })
   descripcion: string;
 
   @ApiProperty()

@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 const CATEGORIAS_ALGORITMO = [
   'Ordenamiento',
@@ -19,7 +25,8 @@ export class LibraryQueryDto {
   categoria?: CategoriaAlgoritmoQuery;
 
   @ApiPropertyOptional({
-    description: 'Búsqueda por nombre (coincidencia parcial, sin distinguir mayúsculas)',
+    description:
+      'Búsqueda por nombre (coincidencia parcial, sin distinguir mayúsculas)',
   })
   @IsOptional()
   @IsString()
