@@ -11,7 +11,11 @@ export class AlgorithmsController {
 
   @Get()
   @ApiOperation({ summary: 'CO1 — Obtener biblioteca de algoritmos' })
-  @ApiResponse({ status: 200, description: 'Catálogo listo para UI', type: LibraryResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Catálogo listo para UI',
+    type: LibraryResponseDto,
+  })
   async getLibrary(@Query() query: LibraryQueryDto) {
     const data = await this.algorithmsService.getLibrary(query);
     return { data, message: 'Operación exitosa' };
