@@ -37,7 +37,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, swaggerDocument);
+  SwaggerModule.setup('docs', app, swaggerDocument, { useGlobalPrefix: true });
 
   await app.listen({
     port: Number(process.env.PORT ?? 3000),
