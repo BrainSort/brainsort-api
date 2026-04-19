@@ -20,6 +20,11 @@ export const InsertionSort: AlgorithmDefinition = {
     { line: 6, text: 'j = j - 1', indent: 2 },
     { line: 7, text: 'array[j+1] = key', indent: 1 },
   ],
+  /**
+   * Ejecuta el ordenamiento sobre una copia del arreglo, generando una traza
+   * inmutable de cada paso para conformar la simulación gráfica del UI.
+   * Cuenta con un cortafuegos (MAX_ITERATIONS) para protección de ciclos en Edge cases.
+   */
   execute(data: number[]): SimulationStep[] {
     const array = [...data];
     const n = array.length;
@@ -37,7 +42,6 @@ export const InsertionSort: AlgorithmDefinition = {
           throw new Error('Timeout: Maximum iteration limit reached in engine');
         }
 
-        // Comparación evaluando la condicion en linea 4
         steps.push({
           numeroPaso: stepCount++,
           tipoOperacion: 'comparacion',
@@ -48,7 +52,7 @@ export const InsertionSort: AlgorithmDefinition = {
 
         if (array[j] > key) {
           array[j + 1] = array[j];
-          // Inserción / Desplazamiento (línea 5)
+          
           steps.push({
             numeroPaso: stepCount++,
             tipoOperacion: 'insercion',
@@ -62,7 +66,6 @@ export const InsertionSort: AlgorithmDefinition = {
         }
       }
 
-      // Al final insertamos el key
       array[j + 1] = key;
       steps.push({
         numeroPaso: stepCount++,
@@ -73,7 +76,6 @@ export const InsertionSort: AlgorithmDefinition = {
       });
     }
 
-    // Paso final de cierre
     steps.push({
       numeroPaso: stepCount++,
       tipoOperacion: 'final',

@@ -17,6 +17,11 @@ export const BubbleSort: AlgorithmDefinition = {
     { line: 3, text: 'Si array[j] > array[j+1]', indent: 2 },
     { line: 4, text: 'Intercambiar array[j] y array[j+1]', indent: 3 },
   ],
+  /**
+   * Ejecuta el ordenamiento sobre una copia del arreglo, generando una traza
+   * inmutable de cada paso para conformar la simulación gráfica del UI.
+   * Cuenta con un cortafuegos (MAX_ITERATIONS) para protección de ciclos en Edge cases.
+   */
   execute(data: number[]): SimulationStep[] {
     const array = [...data];
     const n = array.length;
@@ -31,7 +36,6 @@ export const BubbleSort: AlgorithmDefinition = {
           throw new Error('Timeout: Maximum iteration limit reached in engine');
         }
 
-        // Operacion: Comparación
         steps.push({
           numeroPaso: stepCount++,
           tipoOperacion: 'comparacion',
@@ -41,12 +45,10 @@ export const BubbleSort: AlgorithmDefinition = {
         });
 
         if (array[j] > array[j + 1]) {
-          // Intercambiar
           const temp = array[j];
           array[j] = array[j + 1];
           array[j + 1] = temp;
 
-          // Operacion: Intercambio
           steps.push({
             numeroPaso: stepCount++,
             tipoOperacion: 'intercambio',
@@ -58,7 +60,6 @@ export const BubbleSort: AlgorithmDefinition = {
       }
     }
 
-    // Paso final de cierre
     steps.push({
       numeroPaso: stepCount++,
       tipoOperacion: 'final',

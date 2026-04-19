@@ -19,6 +19,11 @@ export const SelectionSort: AlgorithmDefinition = {
     { line: 5, text: 'minIndex = j', indent: 3 },
     { line: 6, text: 'Intercambiar array[i] con array[minIndex]', indent: 1 },
   ],
+  /**
+   * Ejecuta el ordenamiento sobre una copia del arreglo, generando una traza
+   * inmutable de cada paso para conformar la simulación gráfica del UI.
+   * Cuenta con un cortafuegos (MAX_ITERATIONS) para protección de ciclos en Edge cases.
+   */
   execute(data: number[]): SimulationStep[] {
     const array = [...data];
     const n = array.length;
@@ -35,7 +40,6 @@ export const SelectionSort: AlgorithmDefinition = {
           throw new Error('Timeout: Maximum iteration limit reached in engine');
         }
 
-        // Comparación (línea 4)
         steps.push({
           numeroPaso: stepCount++,
           tipoOperacion: 'comparacion',
@@ -46,12 +50,10 @@ export const SelectionSort: AlgorithmDefinition = {
 
         if (array[j] < array[minIndex]) {
           minIndex = j;
-          // No generamos 'intercambio' en UI aquí, sólo asignamos índice
         }
       }
 
       if (minIndex !== i) {
-        // Intercambio (línea 6)
         const temp = array[i];
         array[i] = array[minIndex];
         array[minIndex] = temp;
@@ -59,14 +61,13 @@ export const SelectionSort: AlgorithmDefinition = {
         steps.push({
           numeroPaso: stepCount++,
           tipoOperacion: 'intercambio',
-          indicesActivos: [i, minIndex], // Los índices involucrados en el swap
+          indicesActivos: [i, minIndex],
           estadoArray: [...array],
           lineaPseudocodigo: 6,
         });
       }
     }
 
-    // Paso final de cierre
     steps.push({
       numeroPaso: stepCount++,
       tipoOperacion: 'final',
