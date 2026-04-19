@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════
+// Entidad: Usuario
+// ═══════════════════════════════════════
+model Usuario {
+  id         String   @id @default(uuid())
+  nombre     String
+  correo     String   @unique
+  rol        Rol      @default(Estudiante)
+  contrasena String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones
+  progreso   ProgresoUsuario?
+  sesiones   SesionSimulacion[]
+  respuestas RespuestaEjercicio[]
+
+  @@map("usuarios")
+}
+
+enum Rol {
+  Estudiante
+  Profesor
+  Autodidacta
+}
+
+// ═══════════════════════════════════════
+// Entidad: Administrador
+// ═══════════════════════════════════════
+model Administrador {
+  id                String   @id @default(uuid())
+  nombre            String
+  correo            String   @unique
+  contrasena        String
+  credencialesAdmin String
+  ultimoAcceso      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("administradores")
+}
+
+// ═══════════════════════════════════════
+// Entidad: Algoritmo
+// ═══════════════════════════════════════
+model Algoritmo {
+  id                 String             @id @default(uuid())
+  nombre             String             @unique
+  descripcion        String             @db.Text
+  complejidadTiempo  String
+  complejidadEspacio String
+  categoria          CategoriaAlgoritmo
+  activo             Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  // Relaciones
+  ejercicios EjercicioPrediccion[]
+  sesiones   SesionSimulacion[]
+
+  @@map("algoritmos")
+}
+
+enum CategoriaAlgoritmo {
+  Ordenamiento
+  Busqueda
+  EstructurasLineales
+}
+
+// ═══════════════════════════════════════
+// Entidad: EjercicioPredicción
+// ═══════════════════════════════════════
+model EjercicioPrediccion {
+  id                String              @id @default(uuid())
+  pregunta          String              @db.Text
+  respuestaCorrecta String
+  dificultad        DificultadEjercicio
+  feedbackPositivo  String              @db.Text
+  feedbackNegativo  String              @db.Text
+  createdAt         DateTime            @default(now())
+
+  // Relaciones
+  algoritmoId String
+  algoritmo   Algoritmo            @relation(fields: [algoritmoId], references: [id])
+  respuestas  RespuestaEjercicio[]
+
+  @@map("ejercicios_prediccion")
+}
+
+enum DificultadEjercicio {
+  Facil
+  Medio
+  Dificil
+}
+
+// ═══════════════════════════════════════
+// Entidad: ProgresoUsuario
+// ═══════════════════════════════════════
+model ProgresoUsuario {
+  id              String   @id @default(uuid())
+  puntosTotales   Int      @default(0)
+  nivelActual     Int      @default(1)
+  rachaDias       Int      @default(0)
+  posicionRanking Int      @default(0)
+  ultimaActividad DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  usuarioId String             @unique
+  usuario   Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  insignias ProgresoInsignia[]
+
+  @@index([puntosTotales(sort: Desc)])
+  @@map("progreso_usuario")
+}
+
+// ═══════════════════════════════════════
+// Entidad: Insignia
+// ═══════════════════════════════════════
+model Insignia {
+  id                 String   @id @default(uuid())
+  nombre             String   @unique
+  descripcion        String   @db.Text
+  imagen             String
+  criterioDesbloqueo String
+  createdAt          DateTime @default(now())
+
+  // Relaciones
+  progresosOtorgados ProgresoInsignia[]
+
+  @@map("insignias")
+}
+
+// ═══════════════════════════════════════
+// Tabla intermedia: ProgresoUsuario ↔ Insignia
+// ═══════════════════════════════════════
+model ProgresoInsignia {
+  id             String   @id @default(uuid())
+  fechaObtencion DateTime @default(now())
+
+  progresoId String
+  progreso   ProgresoUsuario @relation(fields: [progresoId], references: [id], onDelete: Cascade)
+
+  insigniaId String
+  insignia   Insignia @relation(fields: [insigniaId], references: [id])
+
+  @@unique([progresoId, insigniaId])
+  @@map("progreso_insignias")
+}
+
+// ═══════════════════════════════════════
+// Entidad auxiliar: SesionSimulacion
+// ═══════════════════════════════════════
+model SesionSimulacion {
+  id               String    @id @default(uuid())
+  pasosCompletados Int       @default(0)
+  totalPasos       Int
+  completada       Boolean   @default(false)
+  fechaInicio      DateTime  @default(now())
+  fechaFin         DateTime?
+
+  // Relaciones
+  usuarioId   String
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  algoritmoId String
+  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
+
+  @@map("sesiones_simulacion")
+}
+
+// ═══════════════════════════════════════
+// Entidad auxiliar: RespuestaEjercicio
+// ═══════════════════════════════════════
+model RespuestaEjercicio {
+  id             String   @id @default(uuid())
+  respuesta      String
+  correcto       Boolean
+  puntosGanados  Int      @default(0)
+  fechaRespuesta DateTime @default(now())
+
+  // Relaciones
+  usuarioId   String
+  usuario     Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  ejercicioId String
+  ejercicio   EjercicioPrediccion @relation(fields: [ejercicioId], references: [id])
+
+  @@map("respuestas_ejercicio")
+}
