@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient, CategoriaAlgoritmo, DificultadEjercicio } from '../generated/prisma';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -22,26 +22,26 @@ async function main() {
     {
       nombre: 'Bubble Sort',
       descripcion: 'Algoritmo de ordenamiento que compara elementos adyacentes e intercambia si están desordenados.',
-      dificultad: 'Facil',
+      dificultad: 'Facil' as const,
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
-      categoria: 'Ordenamiento',
+      categoria: 'Ordenamiento' as const,
     },
     {
       nombre: 'Selection Sort',
       descripcion: 'Algoritmo que selecciona el menor elemento y lo coloca en su posición correcta.',
-      dificultad: 'Medio',
+      dificultad: 'Medio' as const,
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
-      categoria: 'Ordenamiento',
+      categoria: 'Ordenamiento' as const,
     },
     {
       nombre: 'Insertion Sort',
       descripcion: 'Algoritmo que inserta cada elemento en su posición correcta dentro de la sublista ordenada.',
-      dificultad: 'Facil',
+      dificultad: 'Facil' as const,
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
-      categoria: 'Ordenamiento',
+      categoria: 'Ordenamiento' as const,
     },
   ];
 
@@ -71,34 +71,34 @@ async function main() {
         pregunta:
           'Dado el arreglo [5, 2, 8, 1], ¿cuál es el resultado después de la primera pasada completa de Bubble Sort?',
         respuestaCorrecta: '[2, 5, 1, 8]',
-        dificultad: 'Facil',
+        dificultad: 'Facil' as const,
         feedbackPositivo:
           '¡Correcto! En la primera pasada, Bubble Sort compara pares adyacentes y deja el elemento más grande al final.',
         feedbackNegativo:
           'Incorrecto. Recuerda que Bubble Sort compara pares adyacentes de izquierda a derecha y al final de la pasada el mayor queda al final.',
-        algoritmoId: bubbleSort!.id,
+        algoritmo: { connect: { id: bubbleSort!.id } },
       },
       {
         pregunta:
           'En Selection Sort, dado el arreglo [4, 7, 1, 3], ¿cuál es el primer intercambio que se realiza?',
         respuestaCorrecta: 'Intercambiar 4 con 1',
-        dificultad: 'Facil',
+        dificultad: 'Facil' as const,
         feedbackPositivo:
           '¡Correcto! Selection Sort busca el mínimo de todo el arreglo y lo intercambia con la primera posición.',
         feedbackNegativo:
           'Incorrecto. Selection Sort primero ubica el valor mínimo del arreglo y luego lo intercambia con el primer elemento.',
-        algoritmoId: selectionSort!.id,
+        algoritmo: { connect: { id: selectionSort!.id } },
       },
       {
         pregunta:
           'En Insertion Sort, dado el arreglo [3, 1, 4, 2], ¿cuál es el estado del arreglo después de insertar el segundo elemento?',
         respuestaCorrecta: '[1, 3, 4, 2]',
-        dificultad: 'Facil',
+        dificultad: 'Facil' as const,
         feedbackPositivo:
           '¡Correcto! Insertion Sort toma el segundo elemento y lo inserta en la posición correcta dentro de la sublista ordenada.',
         feedbackNegativo:
           'Incorrecto. Insertion Sort inserta cada elemento en orden dentro del subarreglo izquierdo ya ordenado.',
-        algoritmoId: insertionSort!.id,
+        algoritmo: { connect: { id: insertionSort!.id } },
       },
     ];
 
