@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -11,10 +16,10 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (!requiredRoles) {
       return true;
@@ -28,7 +33,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Check if the user has the required role
-    const hasRole = requiredRoles.includes(user.rol);
+    const hasRole = requiredRoles.includes(user.rol as string);
     if (!hasRole) {
       throw new ForbiddenException('Access denied');
     }
@@ -36,7 +41,7 @@ export class RolesGuard implements CanActivate {
     // For Administrador role, also verify the user exists in administradores table
     if (user.rol === 'Administrador' && user.tipo === 'administrador') {
       const admin = await this.prisma.administrador.findUnique({
-        where: { id: user.id },
+        where: { id: user.id as string },
       });
       if (!admin) {
         throw new ForbiddenException('Access denied');

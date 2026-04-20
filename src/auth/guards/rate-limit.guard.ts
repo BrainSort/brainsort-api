@@ -1,4 +1,10 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request } from 'express';
 
 interface RateLimitEntry {
@@ -60,7 +66,7 @@ export class RateLimitGuard implements CanActivate {
   private getIdentifier(request: Request): string {
     // Use IP address or email as identifier
     const ip = request.ip || request.socket.remoteAddress || 'unknown';
-    const body = request.body as any;
+    const body = request.body;
     const email = body?.correo || '';
     return `${ip}:${email}`;
   }

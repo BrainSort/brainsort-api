@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -28,7 +32,7 @@ export class AuthService {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(contrasena, 10);
+    const hashedPassword: string = await bcrypt.hash(contrasena, 10);
 
     // Create user
     const user = await this.prisma.usuario.create({
@@ -52,7 +56,12 @@ export class AuthService {
     });
 
     // Generate tokens
-    const tokens = this.generateTokens(user.id, user.correo, user.rol, 'usuario');
+    const tokens = this.generateTokens(
+      user.id,
+      user.correo,
+      user.rol,
+      'usuario',
+    );
 
     return {
       ...tokens,
@@ -73,20 +82,15 @@ export class AuthService {
     const identifier = `${correo}`;
 
     // Check rate limit
-    try {
-      this.rateLimitGuard.canActivate({
-        switchToHttp: () => ({
-          getRequest: () => ({
-            ip: 'unknown',
-            body: { correo },
-            socket: { remoteAddress: 'unknown' },
-          }),
+    this.rateLimitGuard.canActivate({
+      switchToHttp: () => ({
+        getRequest: () => ({
+          ip: 'unknown',
+          body: { correo },
+          socket: { remoteAddress: 'unknown' },
         }),
-      } as any);
-    } catch (error) {
-      // Rate limit exceeded
-      throw error;
-    }
+      }),
+    } as any);
 
     // Search in users table first
     const user = await this.prisma.usuario.findUnique({
@@ -132,7 +136,7 @@ export class AuthService {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(contrasena, password);
+    const isPasswordValid: boolean = await bcrypt.compare(contrasena, password);
 
     if (!isPasswordValid) {
       this.rateLimitGuard.recordFailedAttempt(identifier);
@@ -158,26 +162,32 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    try {
-      const payload = this.jwtService.verify(refreshToken);
+    const payload = this.jwtService.verify(refreshToken);
 
-      const user = await this.prisma.usuario.findUnique({
-        where: { id: payload.sub },
-      });
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: payload.sub as string },
+    });
 
-      if (!user) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
-
-      const tokens = this.generateTokens(user.id, user.correo, user.rol, payload.tipo || 'usuario');
-
-      return tokens;
-    } catch (error) {
+    if (!user) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+
+    const tokens = this.generateTokens(
+      user.id,
+      user.correo,
+      user.rol,
+      payload.tipo || 'usuario',
+    );
+
+    return tokens;
   }
 
-  private generateTokens(userId: string, correo: string, rol: string, tipo: string) {
+  private generateTokens(
+    userId: string,
+    correo: string,
+    rol: string,
+    tipo: string,
+  ) {
     const payload = {
       sub: userId,
       correo,
