@@ -2,10 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { AnswerExerciseDto } from './dto/answer-exercise.dto';
 import { ExerciseResultDto } from './dto/exercise-result.dto';
+import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
 export class ExercisesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private badgesService: BadgesService,
+  ) {}
 
   async getExercisesByAlgorithm(algoritmoId: string) {
     const ejercicios = await this.prisma.ejercicioPrediccion.findMany({
@@ -108,6 +112,11 @@ export class ExercisesService {
       where: { usuarioId },
       data: { posicionRanking },
     });
+
+    // Verificar insignias post-correcto
+    if (isCorrect) {
+      await this.badgesService.checkAndAward(usuarioId);
+    }
 
     return {
       correcto: isCorrect,

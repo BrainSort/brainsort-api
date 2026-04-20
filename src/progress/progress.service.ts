@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProgressResponseDto, RankingResponseDto } from './dto/progress-response.dto';
+import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
 export class ProgressService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private badgesService: BadgesService,
+  ) {}
 
   async getUserProgress(usuarioId: string): Promise<ProgressResponseDto> {
     const progreso = await this.prisma.progresoUsuario.findUnique({
@@ -134,6 +138,9 @@ export class ProgressService {
         ultimaActividad: progreso.ultimaActividad,
       },
     });
+
+    // Verificar insignias post-racha
+    await this.badgesService.checkAndAward(usuarioId);
   }
 
   private calculateLevel(puntosTotales: number): number {

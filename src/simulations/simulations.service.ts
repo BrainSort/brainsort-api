@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { executeWithTimeout } from './engines/registry';
 import { CreateSimulationDto } from './dto/create-simulation.dto';
 import { SimulationStepDto } from './dto/simulation-step.dto';
+import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
 export class SimulationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private badgesService: BadgesService,
+  ) {}
 
   async createSimulation(
     createSimulationDto: CreateSimulationDto,
@@ -54,7 +58,10 @@ export class SimulationsService {
       },
     });
 
-    // 6. Retornar simulación completa
+    // 6. Verificar insignias post-completar
+    await this.badgesService.checkAndAward(usuarioId);
+
+    // 7. Retornar simulación completa
     return {
       pasos: steps.map((step) => ({
         numeroPaso: step.numeroPaso,
