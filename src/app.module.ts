@@ -7,6 +7,7 @@ import { SimulationsModule } from './simulations/simulations.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { ProgressModule } from './progress/progress.module';
 import { BadgesModule } from './badges/badges.module';
+import { OfflineModule } from './offline/offline.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BadgesModule } from './badges/badges.module';
     ExercisesModule,
     ProgressModule,
     BadgesModule,
+    OfflineModule,
   ],
 })
 export class AppModule {}
