@@ -70,4 +70,16 @@ export class AlgorithmsService {
       algoritmos: algoritmos.map((a) => this.aTarjeta(a)),
     };
   }
+
+  async getAlgorithm(id: string): Promise<AlgorithmLibraryCardDto> {
+    const algoritmo = await this.prisma.algoritmo.findUnique({
+      where: { id },
+    });
+
+    if (!algoritmo) {
+      throw new Error('Algoritmo no encontrado');
+    }
+
+    return this.aTarjeta(algoritmo);
+  }
 }
