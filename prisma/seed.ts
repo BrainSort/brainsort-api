@@ -107,6 +107,38 @@ async function main() {
     }
   }
 
+  // Add Merge Sort exercise if it doesn't exist
+  const mergeSort = await prisma.algoritmo.findUnique({
+    where: { nombre: 'Merge Sort' },
+  });
+
+  if (mergeSort) {
+    const mergeSortExerciseExists = await prisma.ejercicioPrediccion.findFirst({
+      where: {
+        algoritmoId: mergeSort.id,
+        pregunta: {
+          contains: 'Merge Sort',
+        },
+      },
+    });
+
+    if (!mergeSortExerciseExists) {
+      await prisma.ejercicioPrediccion.create({
+        data: {
+          pregunta:
+            'En Merge Sort, dado el arreglo [4, 3, 2, 1], ¿cuál es el resultado del primer merge después de dividir el arreglo en mitades?',
+          respuestaCorrecta: '[3, 4, 1, 2]',
+          dificultad: 'Medio' as const,
+          feedbackPositivo:
+            '¡Correcto! Merge Sort divide recursivamente y luego combina las mitades ordenadas.',
+          feedbackNegativo:
+            'Incorrecto. Merge Sort primero divide el arreglo en mitades recursivamente y luego las combina ordenadamente.',
+          algoritmo: { connect: { id: mergeSort.id } },
+        },
+      });
+    }
+  }
+
   // 4. Seed de insignias
   const insignias = [
     { nombre: 'Primer Paso', descripcion: 'Completaste tu primera simulación', imagen: '/badges/first-step.svg', criterioDesbloqueo: 'Completar 1 simulación' },
