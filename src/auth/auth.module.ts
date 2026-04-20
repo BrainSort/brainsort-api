@@ -8,10 +8,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { RateLimitGuard } from './guards/rate-limit.guard';
 import { PrismaModule } from '../prisma/prisma.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     PrismaModule,
+    UsersModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'default-secret',
