@@ -27,15 +27,18 @@ describe('AuthController (e2e)', () => {
   describe('POST /api/auth/register', () => {
     it('debe registrar un usuario exitosamente', async () => {
       const uniqueEmail = `test${Date.now()}@example.com`;
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email: uniqueEmail,
-          password: 'Password123!',
-          nombre: 'Test User',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email: uniqueEmail,
+            password: 'Password123!',
+            nombre: 'Test User',
+          },
+        });
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);
@@ -47,28 +50,34 @@ describe('AuthController (e2e)', () => {
 
     it('debe rechazar registro con email duplicado', async () => {
       const email = `duplicate${Date.now()}@example.com`;
-      
+
       // Primer registro
-      await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email,
-          password: 'Password123!',
-          nombre: 'Test User',
-        },
-      });
+      await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email,
+            password: 'Password123!',
+            nombre: 'Test User',
+          },
+        });
 
       // Segundo registro con mismo email
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email,
-          password: 'Password123!',
-          nombre: 'Test User 2',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email,
+            password: 'Password123!',
+            nombre: 'Test User 2',
+          },
+        });
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
@@ -76,30 +85,36 @@ describe('AuthController (e2e)', () => {
     });
 
     it('debe rechazar registro con email inválido', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email: 'email-invalido',
-          password: 'Password123!',
-          nombre: 'Test User',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email: 'email-invalido',
+            password: 'Password123!',
+            nombre: 'Test User',
+          },
+        });
 
       expect(response.statusCode).toBe(400);
     });
 
     it('debe rechazar registro con contraseña débil', async () => {
       const uniqueEmail = `test${Date.now()}@example.com`;
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email: uniqueEmail,
-          password: '123',
-          nombre: 'Test User',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email: uniqueEmail,
+            password: '123',
+            nombre: 'Test User',
+          },
+        });
 
       expect(response.statusCode).toBe(400);
     });
@@ -108,27 +123,33 @@ describe('AuthController (e2e)', () => {
   describe('POST /api/auth/login', () => {
     it('debe hacer login exitosamente', async () => {
       const email = `login${Date.now()}@example.com`;
-      
+
       // Registrar usuario primero
-      await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email,
-          password: 'Password123!',
-          nombre: 'Login Test',
-        },
-      });
+      await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email,
+            password: 'Password123!',
+            nombre: 'Login Test',
+          },
+        });
 
       // Login
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/login',
-        payload: {
-          email,
-          password: 'Password123!',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/login',
+          payload: {
+            email,
+            password: 'Password123!',
+          },
+        });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload);
@@ -138,41 +159,50 @@ describe('AuthController (e2e)', () => {
     });
 
     it('debe rechazar login con credenciales incorrectas', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/login',
-        payload: {
-          email: 'noexiste@example.com',
-          password: 'Password123!',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/login',
+          payload: {
+            email: 'noexiste@example.com',
+            password: 'Password123!',
+          },
+        });
 
       expect(response.statusCode).toBe(401);
     });
 
     it('debe rechazar login con contraseña incorrecta', async () => {
       const email = `wrongpass${Date.now()}@example.com`;
-      
+
       // Registrar usuario
-      await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email,
-          password: 'Password123!',
-          nombre: 'Wrong Pass Test',
-        },
-      });
+      await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email,
+            password: 'Password123!',
+            nombre: 'Wrong Pass Test',
+          },
+        });
 
       // Login con contraseña incorrecta
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/login',
-        payload: {
-          email,
-          password: 'WrongPassword123!',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/login',
+          payload: {
+            email,
+            password: 'WrongPassword123!',
+          },
+        });
 
       expect(response.statusCode).toBe(401);
     });
@@ -181,28 +211,34 @@ describe('AuthController (e2e)', () => {
   describe('POST /api/auth/refresh', () => {
     it('debe refrescar el token exitosamente', async () => {
       const email = `refresh${Date.now()}@example.com`;
-      
+
       // Registrar usuario
-      const registerResponse = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/register',
-        payload: {
-          email,
-          password: 'Password123!',
-          nombre: 'Refresh Test',
-        },
-      });
+      const registerResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/register',
+          payload: {
+            email,
+            password: 'Password123!',
+            nombre: 'Refresh Test',
+          },
+        });
 
       const registerBody = JSON.parse(registerResponse.payload);
 
       // Refresh token
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/refresh',
-        payload: {
-          refreshToken: registerBody.refreshToken,
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/refresh',
+          payload: {
+            refreshToken: registerBody.refreshToken,
+          },
+        });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload);
@@ -211,13 +247,16 @@ describe('AuthController (e2e)', () => {
     });
 
     it('debe rechazar refresh token inválido', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/auth/refresh',
-        payload: {
-          refreshToken: 'token-invalido',
-        },
-      });
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/auth/refresh',
+          payload: {
+            refreshToken: 'token-invalido',
+          },
+        });
 
       expect(response.statusCode).toBe(401);
     });

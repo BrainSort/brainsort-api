@@ -24,7 +24,10 @@ export class OfflineSessionDto {
 }
 
 export class SyncProgressDto {
-  @ApiProperty({ description: 'Sesiones offline para sincronizar', type: [OfflineSessionDto] })
+  @ApiProperty({
+    description: 'Sesiones offline para sincronizar',
+    type: [OfflineSessionDto],
+  })
   @IsArray()
   sesiones: OfflineSessionDto[];
 }

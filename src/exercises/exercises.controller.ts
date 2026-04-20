@@ -1,5 +1,18 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExercisesService } from './exercises.service';
 import { AnswerExerciseDto } from './dto/answer-exercise.dto';
@@ -14,7 +27,8 @@ export class ExercisesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Lista ejercicios de un algoritmo',
-    description: 'Retorna todos los ejercicios de predicción asociados a un algoritmo',
+    description:
+      'Retorna todos los ejercicios de predicción asociados a un algoritmo',
   })
   @ApiParam({ name: 'algoId', description: 'ID del algoritmo' })
   async getExercisesByAlgorithm(@Param('algoId') algoId: string) {
@@ -36,6 +50,10 @@ export class ExercisesController {
     @Request() req,
   ) {
     const usuarioId = req.user.id;
-    return this.exercisesService.answerExercise(id, answerExerciseDto, usuarioId);
+    return this.exercisesService.answerExercise(
+      id,
+      answerExerciseDto,
+      usuarioId,
+    );
   }
 }

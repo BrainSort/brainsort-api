@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { executeWithTimeout } from './engines/registry';
 import { CreateSimulationDto } from './dto/create-simulation.dto';
@@ -74,7 +78,9 @@ export class SimulationsService {
     };
   }
 
-  private validateData(conjuntoDeDatos: CreateSimulationDto['conjuntoDeDatos']): void {
+  private validateData(
+    conjuntoDeDatos: CreateSimulationDto['conjuntoDeDatos'],
+  ): void {
     const { valores, tamano } = conjuntoDeDatos;
 
     // Validar que no haya valores nulos

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnswerExerciseDto } from './dto/answer-exercise.dto';
 import { ExerciseResultDto } from './dto/exercise-result.dto';
@@ -129,10 +133,7 @@ export class ExercisesService {
     };
   }
 
-  private compareAnswers(
-    userAnswer: string,
-    correctAnswer: string,
-  ): boolean {
+  private compareAnswers(userAnswer: string, correctAnswer: string): boolean {
     // Normalizar respuestas para comparación (trim, lowercase, sin espacios extra)
     const normalizedUser = userAnswer.trim().toLowerCase().replace(/\s+/g, ' ');
     const normalizedCorrect = correctAnswer

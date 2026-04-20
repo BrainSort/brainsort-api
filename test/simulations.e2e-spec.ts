@@ -22,15 +22,18 @@ describe('SimulationsController (e2e)', () => {
 
     // Registrar usuario para obtener token de autenticación
     const email = `simtest${Date.now()}@example.com`;
-    const registerResponse = await app.getHttpAdapter().getInstance().inject({
-      method: 'POST',
-      url: '/api/auth/register',
-      payload: {
-        email,
-        password: 'Password123!',
-        nombre: 'Simulation Test',
-      },
-    });
+    const registerResponse = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email,
+          password: 'Password123!',
+          nombre: 'Simulation Test',
+        },
+      });
 
     const registerBody = JSON.parse(registerResponse.payload);
     authToken = registerBody.accessToken;
@@ -56,21 +59,24 @@ describe('SimulationsController (e2e)', () => {
         return;
       }
 
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/simulaciones',
-        headers: {
-          authorization: `Bearer ${authToken}`,
-        },
-        payload: {
-          algoritmoId,
-          conjuntoDeDatos: {
-            tipo: 'Predeterminado',
-            tamano: 5,
-            valores: [10, 5, 8, 3, 1],
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/simulaciones',
+          headers: {
+            authorization: `Bearer ${authToken}`,
           },
-        },
-      });
+          payload: {
+            algoritmoId,
+            conjuntoDeDatos: {
+              tipo: 'Predeterminado',
+              tamano: 5,
+              valores: [10, 5, 8, 3, 1],
+            },
+          },
+        });
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);
@@ -93,38 +99,44 @@ describe('SimulationsController (e2e)', () => {
         return;
       }
 
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/simulaciones',
-        payload: {
-          algoritmoId,
-          conjuntoDeDatos: {
-            tipo: 'Predeterminado',
-            tamano: 5,
-            valores: [10, 5, 8, 3, 1],
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/simulaciones',
+          payload: {
+            algoritmoId,
+            conjuntoDeDatos: {
+              tipo: 'Predeterminado',
+              tamano: 5,
+              valores: [10, 5, 8, 3, 1],
+            },
           },
-        },
-      });
+        });
 
       expect(response.statusCode).toBe(401);
     });
 
     it('debe rechazar simulación con algoritmo inexistente', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/simulaciones',
-        headers: {
-          authorization: `Bearer ${authToken}`,
-        },
-        payload: {
-          algoritmoId: 'id-inexistente-12345',
-          conjuntoDeDatos: {
-            tipo: 'Predeterminado',
-            tamano: 5,
-            valores: [10, 5, 8, 3, 1],
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/simulaciones',
+          headers: {
+            authorization: `Bearer ${authToken}`,
           },
-        },
-      });
+          payload: {
+            algoritmoId: 'id-inexistente-12345',
+            conjuntoDeDatos: {
+              tipo: 'Predeterminado',
+              tamano: 5,
+              valores: [10, 5, 8, 3, 1],
+            },
+          },
+        });
 
       expect(response.statusCode).toBe(404);
     });
@@ -143,21 +155,24 @@ describe('SimulationsController (e2e)', () => {
         return;
       }
 
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/simulaciones',
-        headers: {
-          authorization: `Bearer ${authToken}`,
-        },
-        payload: {
-          algoritmoId,
-          conjuntoDeDatos: {
-            tipo: 'Predeterminado',
-            tamano: 5,
-            valores: [null, 5, 8, 3, 1], // Valor nulo inválido
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/simulaciones',
+          headers: {
+            authorization: `Bearer ${authToken}`,
           },
-        },
-      });
+          payload: {
+            algoritmoId,
+            conjuntoDeDatos: {
+              tipo: 'Predeterminado',
+              tamano: 5,
+              valores: [null, 5, 8, 3, 1], // Valor nulo inválido
+            },
+          },
+        });
 
       expect(response.statusCode).toBe(400);
     });
@@ -176,21 +191,24 @@ describe('SimulationsController (e2e)', () => {
         return;
       }
 
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'POST',
-        url: '/api/simulaciones',
-        headers: {
-          authorization: `Bearer ${authToken}`,
-        },
-        payload: {
-          algoritmoId,
-          conjuntoDeDatos: {
-            tipo: 'Predeterminado',
-            tamano: 5,
-            valores: [10, 5, 8, 3, 1],
+      const response = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'POST',
+          url: '/api/simulaciones',
+          headers: {
+            authorization: `Bearer ${authToken}`,
           },
-        },
-      });
+          payload: {
+            algoritmoId,
+            conjuntoDeDatos: {
+              tipo: 'Predeterminado',
+              tamano: 5,
+              valores: [10, 5, 8, 3, 1],
+            },
+          },
+        });
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);

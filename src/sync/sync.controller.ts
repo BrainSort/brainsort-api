@@ -17,10 +17,7 @@ export class SyncController {
     description:
       'Recibe un batch de sesiones offline y las sincroniza con el servidor. Retorna el número de sesiones sincronizadas y puntos actualizados.',
   })
-  async syncProgress(
-    @Body() syncProgressDto: SyncProgressDto,
-    @Request() req,
-  ) {
+  async syncProgress(@Body() syncProgressDto: SyncProgressDto, @Request() req) {
     const usuarioId = req.user.id;
     return this.syncService.syncProgress(usuarioId, syncProgressDto);
   }

@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsArray, IsNumber, IsEnum, IsInt, Min, Max, IsOptional, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  IsUUID,
+  IsArray,
+  IsNumber,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
 
 export class ConjuntoDeDatosDto {
   @ApiProperty({

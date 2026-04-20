@@ -19,6 +19,8 @@ export class BadgeResponseDto {
   @ApiProperty({ description: 'Fecha de obtención (si está desbloqueada)' })
   fechaObtencion?: Date;
 
-  @ApiProperty({ description: 'Indica si el usuario tiene la insignia desbloqueada' })
+  @ApiProperty({
+    description: 'Indica si el usuario tiene la insignia desbloqueada',
+  })
   desbloqueada: boolean;
 }

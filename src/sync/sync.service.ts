@@ -100,7 +100,9 @@ export class SyncService {
     progreso.nivelActual = this.calculateLevel(progreso.puntosTotales);
 
     // Recalcular ranking
-    progreso.posicionRanking = await this.calculateRanking(progreso.puntosTotales);
+    progreso.posicionRanking = await this.calculateRanking(
+      progreso.puntosTotales,
+    );
 
     // Actualizar última actividad
     progreso.ultimaActividad = new Date();

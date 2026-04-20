@@ -4,7 +4,9 @@ export class ExerciseResultDto {
   @ApiProperty({ description: 'Indica si la respuesta fue correcta' })
   correcto: boolean;
 
-  @ApiProperty({ description: 'Feedback positivo o negativo según el resultado' })
+  @ApiProperty({
+    description: 'Feedback positivo o negativo según el resultado',
+  })
   feedback: string;
 
   @ApiProperty({ description: 'Puntos ganados por el ejercicio' })

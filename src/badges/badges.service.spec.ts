@@ -103,8 +103,12 @@ describe('BadgesService', () => {
       ];
 
       mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
-      mockPrismaService.progresoInsignia.findMany.mockResolvedValue(mockUserBadges);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue(
+        mockUserBadges,
+      );
 
       const result = await service.getUserBadges('user1');
 
@@ -142,7 +146,9 @@ describe('BadgesService', () => {
       };
 
       mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
       mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
       mockPrismaService.sesionSimulacion.count.mockResolvedValue(1);
       mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
@@ -173,7 +179,9 @@ describe('BadgesService', () => {
       };
 
       mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
       mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
       mockPrismaService.sesionSimulacion.count.mockResolvedValue(0); // No simulations completed
       mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
@@ -210,8 +218,12 @@ describe('BadgesService', () => {
       ];
 
       mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
-      mockPrismaService.progresoInsignia.findMany.mockResolvedValue(mockUserBadges);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue(
+        mockUserBadges,
+      );
 
       await service.checkAndAward('user1');
 
