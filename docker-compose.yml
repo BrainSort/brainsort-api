@@ -6,9 +6,9 @@ services:
     container_name: brainsort_postgres
     restart: always
     environment:
-      POSTGRES_USER: brainsort
-      POSTGRES_PASSWORD: brainsort_password
-      POSTGRES_DB: brainsort_db
+      POSTGRES_USER: ${DB_USER:-brainsort}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-brainsort_password}
+      POSTGRES_DB: ${DB_NAME:-brainsort_db}
     ports:
       - '5432:5432'
     volumes:
