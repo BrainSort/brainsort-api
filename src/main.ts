@@ -1,3 +1,7 @@
+import * as dotenv from 'dotenv';
+import { expand } from 'dotenv-expand';
+expand(dotenv.config());
+
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -6,6 +10,7 @@ import {
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -14,6 +19,7 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -49,4 +55,4 @@ async function bootstrap() {
     host: '0.0.0.0',
   });
 }
-bootstrap();
+void bootstrap();

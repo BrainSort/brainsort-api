@@ -1,0 +1,102 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import { AppModule } from './../src/app.module';
+
+describe('AlgorithmsController (e2e)', () => {
+  let app: INestApplication<NestFastifyApplication>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication(new FastifyAdapter());
+    app.setGlobalPrefix('api');
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('GET /api/biblioteca', () => {
+    it('debe retornar respuesta exitosa', async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({
+        method: 'GET',
+        url: '/api/biblioteca',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body).toHaveProperty('data');
+      expect(body).toHaveProperty('message');
+      expect(body.message).toBe('Operación exitosa');
+    });
+
+    it('debe retornar estructura correcta', async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({
+        method: 'GET',
+        url: '/api/biblioteca',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data).toHaveProperty('categorias');
+      expect(body.data).toHaveProperty('totalAlgoritmos');
+      expect(body.data).toHaveProperty('algoritmos');
+      expect(Array.isArray(body.data.categorias)).toBe(true);
+      expect(Array.isArray(body.data.algoritmos)).toBe(true);
+      expect(typeof body.data.totalAlgoritmos).toBe('number');
+    });
+
+    it('debe filtrar por categoría', async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({
+        method: 'GET',
+        url: '/api/biblioteca?categoria=Ordenamiento',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data).toHaveProperty('algoritmos');
+      if (body.data.algoritmos.length > 0) {
+        body.data.algoritmos.forEach((algo: any) => {
+          expect(algo.categoria).toBe('Ordenamiento');
+        });
+      }
+    });
+
+    it('debe buscar por nombre', async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({
+        method: 'GET',
+        url: '/api/biblioteca?nombre=bubble',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data).toHaveProperty('algoritmos');
+      if (body.data.algoritmos.length > 0) {
+        body.data.algoritmos.forEach((algo: any) => {
+          expect(algo.nombre.toLowerCase()).toContain('bubble');
+        });
+      }
+    });
+
+    it('debe manejar catálogo vacío', async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({
+        method: 'GET',
+        url: '/api/biblioteca?nombre=algoritmoInexistente123456',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data).toHaveProperty('algoritmos');
+      expect(body.data.algoritmos).toHaveLength(0);
+      expect(body.data.totalAlgoritmos).toBe(0);
+    });
+  });
+});
