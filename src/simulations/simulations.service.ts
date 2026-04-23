@@ -4,10 +4,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { executeWithTimeout } from './engines/registry';
+import { getEngine, executeWithTimeout } from './engines/registry';
 import { CreateSimulationDto } from './dto/create-simulation.dto';
 import { SimulationStepDto } from './dto/simulation-step.dto';
 import { BadgesService } from '../badges/badges.service';
+import { PseudocodeLine } from './engines/engine.interface';
 
 @Injectable()
 export class SimulationsService {
@@ -16,10 +17,27 @@ export class SimulationsService {
     private badgesService: BadgesService,
   ) {}
 
+  /**
+   * CO3 — Genera simulación del algoritmo.
+   *
+   * Retorna la estructura completa según 04-contratos-api.md §4:
+   * { simulacion, pseudocode, totalPasos, pasos }
+   *
+   * Ref: 04-contratos-api.md §4, 01-backend-api.md §2.4
+   */
   async createSimulation(
     createSimulationDto: CreateSimulationDto,
     usuarioId: string,
-  ): Promise<{ pasos: SimulationStepDto[]; sesionId: string }> {
+  ): Promise<{
+    simulacion: {
+      velocidadReproduccion: number;
+      estadoActual: string;
+      pasoActual: number;
+    };
+    pseudocode: PseudocodeLine[];
+    totalPasos: number;
+    pasos: SimulationStepDto[];
+  }> {
     const { algoritmoId, conjuntoDeDatos } = createSimulationDto;
 
     // 1. Validar que el algoritmo existe
@@ -50,7 +68,10 @@ export class SimulationsService {
       );
     }
 
-    // 5. Crear SesionSimulacion
+    // 5. Obtener pseudocódigo del engine (CDR-001)
+    const engine = getEngine(algoritmo.nombre);
+
+    // 6. Crear SesionSimulacion
     const sesion = await this.prisma.sesionSimulacion.create({
       data: {
         usuarioId,
@@ -62,11 +83,15 @@ export class SimulationsService {
       },
     });
 
-    // 6. Verificar insignias post-completar
-    await this.badgesService.checkAndAward(usuarioId);
-
-    // 7. Retornar simulación completa
+    // 7. Retornar simulación completa según contrato CO3
     return {
+      simulacion: {
+        velocidadReproduccion: 1.0,
+        estadoActual: 'Pausa',
+        pasoActual: 0,
+      },
+      pseudocode: engine.pseudocode,
+      totalPasos: steps.length,
       pasos: steps.map((step) => ({
         numeroPaso: step.numeroPaso,
         tipoOperacion: step.tipoOperacion,
@@ -74,7 +99,6 @@ export class SimulationsService {
         estadoArray: step.estadoArray,
         lineaPseudocodigo: step.lineaPseudocodigo,
       })),
-      sesionId: sesion.id,
     };
   }
 
@@ -124,17 +148,36 @@ export class SimulationsService {
     return array;
   }
 
+  /**
+   * Actualiza el progreso de una sesión de simulación.
+   * Compara pasosCompletados contra el totalPasos de la sesión.
+   */
   async updateSessionProgress(
     sesionId: string,
     pasosCompletados: number,
   ): Promise<void> {
+    const sesion = await this.prisma.sesionSimulacion.findUnique({
+      where: { id: sesionId },
+    });
+
+    if (!sesion) {
+      throw new NotFoundException('Sesión de simulación no encontrada');
+    }
+
+    const completada = pasosCompletados >= sesion.totalPasos;
+
     await this.prisma.sesionSimulacion.update({
       where: { id: sesionId },
       data: {
         pasosCompletados,
-        completada: pasosCompletados >= 100, // Asumiendo que el frontend envía porcentaje
-        fechaFin: pasosCompletados >= 100 ? new Date() : null,
+        completada,
+        fechaFin: completada ? new Date() : null,
       },
     });
+
+    // Verificar insignias solo cuando la sesión se completa
+    if (completada) {
+      await this.badgesService.checkAndAward(sesion.usuarioId);
+    }
   }
 }
