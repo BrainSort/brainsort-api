@@ -96,7 +96,7 @@ export class AlgorithmsService {
       complejidadTiempo: algoritmo.complejidadTiempo,
       complejidadEspacio: algoritmo.complejidadEspacio,
       categoria: algoritmo.categoria,
-      pseudocode: algoritmo.pseudocodigo as any[] || [],
+      pseudocode: (algoritmo.pseudocodigo as any[]) || [],
     };
   }
 }
