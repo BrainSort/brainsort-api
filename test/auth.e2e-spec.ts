@@ -4,7 +4,24 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+
+// Tipos para respuestas de autenticación
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    email: string;
+    id: string;
+    nombre: string;
+  };
+}
+
+interface ErrorResponse {
+  message: string;
+  statusCode: number;
+}
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication<NestFastifyApplication>;
@@ -27,7 +44,7 @@ describe('AuthController (e2e)', () => {
   describe('POST /api/auth/register', () => {
     it('debe registrar un usuario exitosamente', async () => {
       const uniqueEmail = `test${Date.now()}@example.com`;
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -41,7 +58,7 @@ describe('AuthController (e2e)', () => {
         });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as AuthResponse;
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
       expect(body).toHaveProperty('user');
@@ -66,7 +83,7 @@ describe('AuthController (e2e)', () => {
         });
 
       // Segundo registro con mismo email
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -80,12 +97,12 @@ describe('AuthController (e2e)', () => {
         });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as ErrorResponse;
       expect(body.message).toContain('ya existe');
     });
 
     it('debe rechazar registro con email inválido', async () => {
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -103,7 +120,7 @@ describe('AuthController (e2e)', () => {
 
     it('debe rechazar registro con contraseña débil', async () => {
       const uniqueEmail = `test${Date.now()}@example.com`;
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -139,7 +156,7 @@ describe('AuthController (e2e)', () => {
         });
 
       // Login
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -152,14 +169,14 @@ describe('AuthController (e2e)', () => {
         });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as AuthResponse;
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
       expect(body).toHaveProperty('user');
     });
 
     it('debe rechazar login con credenciales incorrectas', async () => {
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -192,7 +209,7 @@ describe('AuthController (e2e)', () => {
         });
 
       // Login con contraseña incorrecta
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -213,7 +230,7 @@ describe('AuthController (e2e)', () => {
       const email = `refresh${Date.now()}@example.com`;
 
       // Registrar usuario
-      const registerResponse = await app
+      const registerResponse: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -226,10 +243,10 @@ describe('AuthController (e2e)', () => {
           },
         });
 
-      const registerBody = JSON.parse(registerResponse.payload);
+      const registerBody = JSON.parse(registerResponse.payload) as AuthResponse;
 
       // Refresh token
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({
@@ -241,13 +258,13 @@ describe('AuthController (e2e)', () => {
         });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as AuthResponse;
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
     });
 
     it('debe rechazar refresh token inválido', async () => {
-      const response = await app
+      const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
         .inject({

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SyncProgressDto, SyncResponseDto } from './dto/sync-progress.dto';
-import { OfflineSessionDto } from './dto/sync-progress.dto';
 
 @Injectable()
 export class SyncService {
