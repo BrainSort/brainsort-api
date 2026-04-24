@@ -75,7 +75,7 @@ export class AlgorithmsService {
   /**
    * CO2 — Obtiene el detalle completo de un algoritmo con pseudocódigo.
    * La descripción se retorna completa (sin truncar).
-   * El pseudocódigo se obtiene del engine file (CDR-001), no de la DB.
+   * El pseudocódigo se obtiene de la base de datos (CDR-009).
    *
    * Ref: 04-contratos-api.md §3 CO2, 01-backend-api.md §2.3
    */
@@ -88,9 +88,6 @@ export class AlgorithmsService {
       throw new NotFoundException('Algoritmo no encontrado');
     }
 
-    // Obtener pseudocódigo del engine auto-contenido (CDR-001)
-    const engine = getEngine(algoritmo.nombre);
-
     return {
       id: algoritmo.id,
       nombre: algoritmo.nombre,
@@ -99,7 +96,7 @@ export class AlgorithmsService {
       complejidadTiempo: algoritmo.complejidadTiempo,
       complejidadEspacio: algoritmo.complejidadEspacio,
       categoria: algoritmo.categoria,
-      pseudocode: engine.pseudocode,
+      pseudocode: algoritmo.pseudocodigo as any[] || [],
     };
   }
 }

@@ -40,7 +40,7 @@ export class SimulationsService {
   }> {
     const { algoritmoId, conjuntoDeDatos } = createSimulationDto;
 
-    // 1. Validar que el algoritmo existe
+    // 1. Validar que el algoritmo existe y obtener pseudocódigo
     const algoritmo = await this.prisma.algoritmo.findUnique({
       where: { id: algoritmoId, activo: true },
     });
@@ -68,7 +68,7 @@ export class SimulationsService {
       );
     }
 
-    // 5. Obtener pseudocódigo del engine (CDR-001)
+    // 5. Obtener engine para ejecutar la simulación
     const engine = getEngine(algoritmo.nombre);
 
     // 6. Crear SesionSimulacion
@@ -90,7 +90,7 @@ export class SimulationsService {
         estadoActual: 'Pausa',
         pasoActual: 0,
       },
-      pseudocode: engine.pseudocode,
+      pseudocode: algoritmo.pseudocodigo as PseudocodeLine[] || [],
       totalPasos: steps.length,
       pasos: steps.map((step) => ({
         numeroPaso: step.numeroPaso,

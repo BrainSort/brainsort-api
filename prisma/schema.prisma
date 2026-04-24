@@ -58,7 +58,7 @@ model Administrador {
 // ═══════════════════════════════════════
 // Entidad: Algoritmo
 // Modelo del Dominio: nombre, descripción, dificultad, complejidadTiempo,
-//                     complejidadEspacio, categoría
+//                     complejidadEspacio, categoría, pseudocodigo
 // Asociaciones: contenido en BibliotecaDeAlgoritmos,
 //               tiene descrita Simulación, gestionado por Admin
 // ═══════════════════════════════════════
@@ -70,6 +70,7 @@ model Algoritmo {
   complejidadTiempo String    // Notación Big O, ej: "O(n²)"
   complejidadEspacio String   // Notación Big O, ej: "O(1)"
   categoria         CategoriaAlgoritmo
+  pseudocodigo      Json?     // Array de {numero: number, codigo: string}
   activo            Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

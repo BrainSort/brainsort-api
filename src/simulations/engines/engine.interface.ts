@@ -6,9 +6,11 @@ export interface AlgorithmDefinition {
     complejidadEspacio: string;
     categoria: string;
   };
-  pseudocode: PseudocodeLine[];
   execute(data: number[]): SimulationStep[];
 }
+
+// Tipo para el pseudocódigo almacenado en la base de datos
+export type PseudocodeDB = PseudocodeLine[];
 
 export interface PseudocodeLine {
   line: number; // Índice base 1

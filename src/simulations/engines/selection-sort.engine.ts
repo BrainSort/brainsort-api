@@ -11,14 +11,6 @@ export const SelectionSort: AlgorithmDefinition = {
     complejidadEspacio: 'O(1)',
     categoria: 'Ordenamiento',
   },
-  pseudocode: [
-    { line: 1, text: 'Para i = 0 hasta n-1', indent: 0 },
-    { line: 2, text: 'minIndex = i', indent: 1 },
-    { line: 3, text: 'Para j = i+1 hasta n', indent: 1 },
-    { line: 4, text: 'Si array[j] < array[minIndex]', indent: 2 },
-    { line: 5, text: 'minIndex = j', indent: 3 },
-    { line: 6, text: 'Intercambiar array[i] con array[minIndex]', indent: 1 },
-  ],
   /**
    * Ejecuta el ordenamiento sobre una copia del arreglo, generando una traza
    * inmutable de cada paso para conformar la simulación gráfica del UI.

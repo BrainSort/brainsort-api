@@ -17,7 +17,7 @@ async function main() {
     },
   });
 
-  // 2. Seed de algoritmos de ordenamiento
+  // 2. Seed de algoritmos de ordenamiento (CDR-009: pseudocodigo en formato JSON Array)
   const algoritmos = [
     {
       nombre: 'Bubble Sort',
@@ -26,6 +26,12 @@ async function main() {
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
       categoria: 'Ordenamiento' as const,
+      pseudocodigo: [
+        { numero: 1, codigo: 'Para i = 0 hasta n-2' },
+        { numero: 2, codigo: '  Para j = 0 hasta n-i-2' },
+        { numero: 3, codigo: '    Si array[j] > array[j+1]' },
+        { numero: 4, codigo: '      Intercambiar array[j] y array[j+1]' },
+      ],
     },
     {
       nombre: 'Selection Sort',
@@ -34,6 +40,14 @@ async function main() {
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
       categoria: 'Ordenamiento' as const,
+      pseudocodigo: [
+        { numero: 1, codigo: 'Para i = 0 hasta n-1' },
+        { numero: 2, codigo: '  minIndex = i' },
+        { numero: 3, codigo: '  Para j = i+1 hasta n-1' },
+        { numero: 4, codigo: '    Si array[j] < array[minIndex]' },
+        { numero: 5, codigo: '      minIndex = j' },
+        { numero: 6, codigo: '  Intercambiar array[i] con array[minIndex]' },
+      ],
     },
     {
       nombre: 'Insertion Sort',
@@ -42,6 +56,15 @@ async function main() {
       complejidadTiempo: 'O(n²)',
       complejidadEspacio: 'O(1)',
       categoria: 'Ordenamiento' as const,
+      pseudocodigo: [
+        { numero: 1, codigo: 'Para i = 1 hasta n-1' },
+        { numero: 2, codigo: '  key = array[i]' },
+        { numero: 3, codigo: '  j = i - 1' },
+        { numero: 4, codigo: '  Mientras j >= 0 y array[j] > key' },
+        { numero: 5, codigo: '    array[j+1] = array[j]' },
+        { numero: 6, codigo: '    j = j - 1' },
+        { numero: 7, codigo: '  array[j+1] = key' },
+      ],
     },
   ];
 
