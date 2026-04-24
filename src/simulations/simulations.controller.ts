@@ -26,6 +26,6 @@ export class SimulationsController {
       createSimulationDto,
       usuarioId,
     );
-    return { data, message: 'Operación exitosa' };
+    return data;
   }
 }

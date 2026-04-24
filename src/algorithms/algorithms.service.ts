@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoriaAlgoritmo, Prisma } from '../../generated/prisma';
 import { PrismaService } from '../prisma/prisma.service';
-import { LibraryQueryDto } from './dto/library-query.dto';
 import {
   AlgorithmLibraryCardDto,
   AlgorithmDetailResponseDto,
@@ -42,7 +41,7 @@ export class AlgorithmsService {
     };
   }
 
-  async getLibrary(query: LibraryQueryDto): Promise<LibraryResponseDto> {
+  async getLibrary(query: any): Promise<LibraryResponseDto> {
     const where: Prisma.AlgoritmoWhereInput = {
       activo: true,
     };
