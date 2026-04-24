@@ -22,9 +22,10 @@ export class SimulationsController {
     @Request() req,
   ) {
     const usuarioId = req.user.id;
-    return this.simulationsService.createSimulation(
+    const data = await this.simulationsService.createSimulation(
       createSimulationDto,
       usuarioId,
     );
+    return data;
   }
 }

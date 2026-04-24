@@ -1,5 +1,10 @@
 import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OfflineService } from './offline.service';
 
@@ -13,7 +18,8 @@ export class OfflineController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Lista módulos disponibles para descarga offline',
-    description: 'Retorna todos los algoritmos disponibles para descarga offline con información de tamaño y estado',
+    description:
+      'Retorna todos los algoritmos disponibles para descarga offline con información de tamaño y estado',
   })
   async getOfflineModules(@Request() req) {
     const usuarioId = req.user.id;
@@ -25,7 +31,8 @@ export class OfflineController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Descargar módulo offline',
-    description: 'Retorna el JSON completo del módulo (meta, pseudocode, ejercicios) para uso offline',
+    description:
+      'Retorna el JSON completo del módulo (meta, pseudocode, ejercicios) para uso offline',
   })
   @ApiParam({ name: 'id', description: 'ID del algoritmo' })
   async downloadModule(@Param('id') id: string) {

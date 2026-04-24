@@ -1,9 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AlgorithmsService } from './algorithms.service';
-import { LibraryQueryDto } from './dto/library-query.dto';
-import { LibraryResponseDto } from './dto/algorithm-response.dto';
-import { AlgorithmLibraryCardDto } from './dto/algorithm-response.dto';
+import {
+  LibraryResponseDto,
+  AlgorithmDetailResponseDto,
+} from './dto/algorithm-response.dto';
 
 @ApiTags('biblioteca')
 @Controller('biblioteca')
@@ -17,9 +18,9 @@ export class AlgorithmsController {
     description: 'Catálogo listo para UI',
     type: LibraryResponseDto,
   })
-  async getLibrary(@Query() query: LibraryQueryDto) {
+  async getLibrary(@Query() query: any) {
     const data = await this.algorithmsService.getLibrary(query);
-    return { data, message: 'Operación exitosa' };
+    return data;
   }
 }
 
@@ -33,10 +34,10 @@ export class AlgorithmDetailController {
   @ApiResponse({
     status: 200,
     description: 'Detalle del algoritmo',
-    type: AlgorithmLibraryCardDto,
+    type: AlgorithmDetailResponseDto,
   })
   async getAlgorithm(@Param('id') id: string) {
     const data = await this.algorithmsService.getAlgorithm(id);
-    return { data, message: 'Operación exitosa' };
+    return data;
   }
 }

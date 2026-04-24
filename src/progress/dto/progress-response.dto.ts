@@ -16,7 +16,10 @@ export class ProgressResponseDto {
   @ApiProperty({ description: 'Fecha de última actividad' })
   ultimaActividad: Date;
 
-  @ApiProperty({ type: [Object], description: 'Insignias desbloqueadas por el usuario' })
+  @ApiProperty({
+    type: [Object],
+    description: 'Insignias desbloqueadas por el usuario',
+  })
   insignias: Array<{
     id: string;
     nombre: string;
@@ -28,7 +31,9 @@ export class ProgressResponseDto {
   @ApiProperty({ description: 'Número de simulaciones completadas' })
   simulacionesCompletadas: number;
 
-  @ApiProperty({ description: 'Número de ejercicios respondidos correctamente' })
+  @ApiProperty({
+    description: 'Número de ejercicios respondidos correctamente',
+  })
   ejerciciosCorrectos: number;
 
   @ApiProperty({ description: 'Número total de ejercicios respondidos' })

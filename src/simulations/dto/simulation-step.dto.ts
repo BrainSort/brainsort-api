@@ -11,12 +11,17 @@ export class SimulationStepDto {
   })
   tipoOperacion: TipoOperacion;
 
-  @ApiProperty({ type: [Number], description: 'Índices del array siendo modificados o comparados' })
+  @ApiProperty({
+    type: [Number],
+    description: 'Índices del array siendo modificados o comparados',
+  })
   indicesActivos: number[];
 
   @ApiProperty({ type: [Number], description: 'Estado del array en este paso' })
   estadoArray: number[];
 
-  @ApiProperty({ description: 'Línea de pseudocódigo correspondiente (base 1)' })
+  @ApiProperty({
+    description: 'Línea de pseudocódigo correspondiente (base 1)',
+  })
   lineaPseudocodigo: number;
 }

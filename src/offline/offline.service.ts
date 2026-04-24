@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { getEngine } from '../simulations/engines/registry';
-import { OfflineModuleDto, OfflineModuleDownloadDto } from './dto/offline-module.dto';
+import {
+  OfflineModuleDto,
+  OfflineModuleDownloadDto,
+} from './dto/offline-module.dto';
 
 @Injectable()
 export class OfflineService {

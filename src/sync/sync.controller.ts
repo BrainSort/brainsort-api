@@ -1,8 +1,9 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SyncService } from './sync.service';
 import { SyncProgressDto } from './dto/sync-progress.dto';
+import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 
 @ApiTags('progress')
 @Controller('progress')
@@ -19,7 +20,7 @@ export class SyncController {
   })
   async syncProgress(
     @Body() syncProgressDto: SyncProgressDto,
-    @Request() req,
+    @Req() req: RequestWithUser,
   ) {
     const usuarioId = req.user.id;
     return this.syncService.syncProgress(usuarioId, syncProgressDto);

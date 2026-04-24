@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ProgressResponseDto, RankingResponseDto } from './dto/progress-response.dto';
+import {
+  ProgressResponseDto,
+  RankingResponseDto,
+} from './dto/progress-response.dto';
 import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
@@ -32,13 +35,12 @@ export class ProgressService {
     }
 
     // Obtener estadísticas
-    const simulacionesCompletadas =
-      await this.prisma.sesionSimulacion.count({
-        where: {
-          usuarioId,
-          completada: true,
-        },
-      });
+    const simulacionesCompletadas = await this.prisma.sesionSimulacion.count({
+      where: {
+        usuarioId,
+        completada: true,
+      },
+    });
 
     const ejerciciosCorrectos = await this.prisma.respuestaEjercicio.count({
       where: {
@@ -78,7 +80,10 @@ export class ProgressService {
     };
   }
 
-  async getRanking(limit: number = 20, offset: number = 0): Promise<RankingResponseDto[]> {
+  async getRanking(
+    limit: number = 20,
+    offset: number = 0,
+  ): Promise<RankingResponseDto[]> {
     const ranking = await this.prisma.progresoUsuario.findMany({
       skip: offset,
       take: limit,
@@ -124,7 +129,9 @@ export class ProgressService {
     progreso.nivelActual = this.calculateLevel(progreso.puntosTotales);
 
     // Recalcular ranking
-    progreso.posicionRanking = await this.calculateRanking(progreso.puntosTotales);
+    progreso.posicionRanking = await this.calculateRanking(
+      progreso.puntosTotales,
+    );
 
     // Actualizar última actividad
     progreso.ultimaActividad = new Date();

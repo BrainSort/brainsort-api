@@ -131,16 +131,17 @@ export class BadgesService {
     const userBadgeIds = new Set(userInsignias.map((ui) => ui.insigniaId));
 
     // Obtener datos para evaluación de reglas
-    const simulacionesCompletadas =
-      await this.prisma.sesionSimulacion.count({
-        where: { usuarioId, completada: true },
-      });
+    const simulacionesCompletadas = await this.prisma.sesionSimulacion.count({
+      where: { usuarioId, completada: true },
+    });
 
     const sesionesAlgoritmos = await this.prisma.sesionSimulacion.findMany({
       where: { usuarioId },
       select: { algoritmoId: true },
     });
-    const algoritmosVistos = new Set(sesionesAlgoritmos.map((s) => s.algoritmoId)).size;
+    const algoritmosVistos = new Set(
+      sesionesAlgoritmos.map((s) => s.algoritmoId),
+    ).size;
 
     const algoritmosOrdenamiento = await this.prisma.algoritmo.count({
       where: { categoria: 'Ordenamiento' },

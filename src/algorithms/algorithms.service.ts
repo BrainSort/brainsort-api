@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoriaAlgoritmo, Prisma } from '../../generated/prisma';
 import { PrismaService } from '../prisma/prisma.service';
-import { LibraryQueryDto } from './dto/library-query.dto';
 import {
   AlgorithmLibraryCardDto,
+  AlgorithmDetailResponseDto,
   LibraryResponseDto,
 } from './dto/algorithm-response.dto';
+import { getEngine } from '../simulations/engines/registry';
 
 const DESCRIPCION_TARJETA_MAX = 140;
 
@@ -40,7 +41,7 @@ export class AlgorithmsService {
     };
   }
 
-  async getLibrary(query: LibraryQueryDto): Promise<LibraryResponseDto> {
+  async getLibrary(query: any): Promise<LibraryResponseDto> {
     const where: Prisma.AlgoritmoWhereInput = {
       activo: true,
     };
@@ -71,15 +72,31 @@ export class AlgorithmsService {
     };
   }
 
-  async getAlgorithm(id: string): Promise<AlgorithmLibraryCardDto> {
+  /**
+   * CO2 — Obtiene el detalle completo de un algoritmo con pseudocódigo.
+   * La descripción se retorna completa (sin truncar).
+   * El pseudocódigo se obtiene de la base de datos (CDR-009).
+   *
+   * Ref: 04-contratos-api.md §3 CO2, 01-backend-api.md §2.3
+   */
+  async getAlgorithm(id: string): Promise<AlgorithmDetailResponseDto> {
     const algoritmo = await this.prisma.algoritmo.findUnique({
       where: { id },
     });
 
     if (!algoritmo) {
-      throw new Error('Algoritmo no encontrado');
+      throw new NotFoundException('Algoritmo no encontrado');
     }
 
-    return this.aTarjeta(algoritmo);
+    return {
+      id: algoritmo.id,
+      nombre: algoritmo.nombre,
+      descripcion: algoritmo.descripcion, // Descripción completa, sin truncar
+      dificultad: algoritmo.dificultad,
+      complejidadTiempo: algoritmo.complejidadTiempo,
+      complejidadEspacio: algoritmo.complejidadEspacio,
+      categoria: algoritmo.categoria,
+      pseudocode: (algoritmo.pseudocodigo as any[]) || [],
+    };
   }
 }

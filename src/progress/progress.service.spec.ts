@@ -58,7 +58,9 @@ describe('ProgressService', () => {
         insignias: [],
       };
 
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
       mockPrismaService.sesionSimulacion.count.mockResolvedValue(5);
       mockPrismaService.respuestaEjercicio.count.mockResolvedValue(10);
 
@@ -121,7 +123,9 @@ describe('ProgressService', () => {
         ultimaActividad: new Date(),
       };
 
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(mockProgress);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
       mockPrismaService.progresoUsuario.findMany.mockResolvedValue([]);
       mockPrismaService.progresoUsuario.update.mockResolvedValue({});
 

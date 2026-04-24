@@ -13,7 +13,8 @@ export class BadgesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Obtener todas las insignias disponibles',
-    description: 'Retorna todas las insignias del sistema con sus criterios de desbloqueo',
+    description:
+      'Retorna todas las insignias del sistema con sus criterios de desbloqueo',
   })
   async getAllBadges() {
     return this.badgesService.getAllBadges();
@@ -24,7 +25,8 @@ export class BadgesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Obtener insignias del usuario',
-    description: 'Retorna las insignias desbloqueadas por el usuario con fecha de obtención',
+    description:
+      'Retorna las insignias desbloqueadas por el usuario con fecha de obtención',
   })
   async getUserBadges(@Request() req) {
     const usuarioId = req.user.id;

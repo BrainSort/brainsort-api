@@ -11,15 +11,6 @@ export const InsertionSort: AlgorithmDefinition = {
     complejidadEspacio: 'O(1)',
     categoria: 'Ordenamiento',
   },
-  pseudocode: [
-    { line: 1, text: 'Para i = 1 hasta n-1', indent: 0 },
-    { line: 2, text: 'key = array[i]', indent: 1 },
-    { line: 3, text: 'j = i - 1', indent: 1 },
-    { line: 4, text: 'Mientras j >= 0 y array[j] > key', indent: 1 },
-    { line: 5, text: 'array[j+1] = array[j]', indent: 2 },
-    { line: 6, text: 'j = j - 1', indent: 2 },
-    { line: 7, text: 'array[j+1] = key', indent: 1 },
-  ],
   /**
    * Ejecuta el ordenamiento sobre una copia del arreglo, generando una traza
    * inmutable de cada paso para conformar la simulación gráfica del UI.

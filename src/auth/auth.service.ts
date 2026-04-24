@@ -9,14 +9,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Rol } from '../../generated/prisma';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RateLimitGuard } from './guards/rate-limit.guard';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private rateLimitGuard: RateLimitGuard,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -78,20 +76,6 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { correo, contrasena } = loginDto;
 
-    // Get identifier for rate limiting
-    const identifier = `${correo}`;
-
-    // Check rate limit
-    this.rateLimitGuard.canActivate({
-      switchToHttp: () => ({
-        getRequest: () => ({
-          ip: 'unknown',
-          body: { correo },
-          socket: { remoteAddress: 'unknown' },
-        }),
-      }),
-    } as any);
-
     // Search in users table first
     const user = await this.prisma.usuario.findUnique({
       where: { correo },
@@ -124,7 +108,6 @@ export class AuthService {
           data: { ultimoAcceso: new Date() },
         });
       } else {
-        this.rateLimitGuard.recordFailedAttempt(identifier);
         throw new UnauthorizedException('Invalid credentials');
       }
     } else {
@@ -139,12 +122,8 @@ export class AuthService {
     const isPasswordValid: boolean = await bcrypt.compare(contrasena, password);
 
     if (!isPasswordValid) {
-      this.rateLimitGuard.recordFailedAttempt(identifier);
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    // Reset rate limit on successful login
-    this.rateLimitGuard.resetAttempts(identifier);
 
     // Generate tokens
     const tokens = this.generateTokens(userId, userCorreo, rol, tipo);

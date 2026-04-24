@@ -4,7 +4,28 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+
+// Tipos para respuestas de biblioteca
+interface Algoritmo {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  complejidadTiempo: string;
+  complejidadEspacio: string;
+  categoria: string;
+  dificultad: string;
+}
+
+interface LibraryResponse {
+  data: {
+    categorias: string[];
+    totalAlgoritmos: number;
+    algoritmos: Algoritmo[];
+  };
+  message: string;
+}
 
 describe('AlgorithmsController (e2e)', () => {
   let app: INestApplication<NestFastifyApplication>;
@@ -26,26 +47,32 @@ describe('AlgorithmsController (e2e)', () => {
 
   describe('GET /api/biblioteca', () => {
     it('debe retornar respuesta exitosa', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'GET',
-        url: '/api/biblioteca',
-      });
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca',
+        });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body).toHaveProperty('data');
       expect(body).toHaveProperty('message');
       expect(body.message).toBe('Operación exitosa');
     });
 
     it('debe retornar estructura correcta', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'GET',
-        url: '/api/biblioteca',
-      });
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca',
+        });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body.data).toHaveProperty('categorias');
       expect(body.data).toHaveProperty('totalAlgoritmos');
       expect(body.data).toHaveProperty('algoritmos');
@@ -55,45 +82,54 @@ describe('AlgorithmsController (e2e)', () => {
     });
 
     it('debe filtrar por categoría', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'GET',
-        url: '/api/biblioteca?categoria=Ordenamiento',
-      });
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca?categoria=Ordenamiento',
+        });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body.data).toHaveProperty('algoritmos');
       if (body.data.algoritmos.length > 0) {
-        body.data.algoritmos.forEach((algo: any) => {
+        body.data.algoritmos.forEach((algo: Algoritmo) => {
           expect(algo.categoria).toBe('Ordenamiento');
         });
       }
     });
 
     it('debe buscar por nombre', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'GET',
-        url: '/api/biblioteca?nombre=bubble',
-      });
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca?nombre=bubble',
+        });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body.data).toHaveProperty('algoritmos');
       if (body.data.algoritmos.length > 0) {
-        body.data.algoritmos.forEach((algo: any) => {
+        body.data.algoritmos.forEach((algo: Algoritmo) => {
           expect(algo.nombre.toLowerCase()).toContain('bubble');
         });
       }
     });
 
     it('debe manejar catálogo vacío', async () => {
-      const response = await app.getHttpAdapter().getInstance().inject({
-        method: 'GET',
-        url: '/api/biblioteca?nombre=algoritmoInexistente123456',
-      });
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca?nombre=algoritmoInexistente123456',
+        });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
+      const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body.data).toHaveProperty('algoritmos');
       expect(body.data.algoritmos).toHaveLength(0);
       expect(body.data.totalAlgoritmos).toBe(0);
