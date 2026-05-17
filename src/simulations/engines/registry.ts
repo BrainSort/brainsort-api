@@ -11,8 +11,8 @@ const ENGINES: Record<string, AlgorithmDefinition> = {
   'Bubble Sort': BubbleSort,
   'Selection Sort': SelectionSort,
   'Insertion Sort': InsertionSort,
-  'Stack': Stack,
-  'Queue': Queue,
+  Stack: Stack,
+  Queue: Queue,
   'Linked List': LinkedList,
 };
 
