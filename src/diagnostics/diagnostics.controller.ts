@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { DiagnosticsService } from './diagnostics.service';
 import { EvaluateDiagnosticDto } from './dto/evaluate-diagnostic.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Diagnostico')
