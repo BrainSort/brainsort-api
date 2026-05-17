@@ -40,6 +40,10 @@ describe('ExercisesService', () => {
     service = module.get<ExercisesService>(ExercisesService);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -314,6 +318,101 @@ describe('ExercisesService', () => {
         }),
       });
       expect(result).toHaveProperty('correcto');
+    });
+
+    it('debe incrementar la racha si la última actividad fue ayer', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T12:00:00Z'));
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 2,
+        ultimaActividad: new Date('2026-05-16T12:00:00Z'),
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.rachaDias).toBe(3);
+      jest.useRealTimers();
+    });
+
+    it('debe mantener la racha si ya hubo actividad el mismo día', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T18:00:00Z'));
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 4,
+        ultimaActividad: new Date('2026-05-17T08:00:00Z'),
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.rachaDias).toBe(4);
+      jest.useRealTimers();
+    });
+
+    it('debe reiniciar la racha si pasaron más de dos días', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T12:00:00Z'));
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 5,
+        ultimaActividad: new Date('2026-05-14T12:00:00Z'),
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.rachaDias).toBe(1);
+      jest.useRealTimers();
+    });
+
+    it('debe recalcular nivel cuando los puntos cruzan el umbral', async () => {
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue({
+        ...mockEjercicio,
+        dificultad: 'Dificil',
+      });
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        puntosTotales: 90,
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.puntosTotales).toBe(120);
+      expect(result.nivelActual).toBe(2);
     });
   });
 });

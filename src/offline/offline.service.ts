@@ -12,6 +12,8 @@ export class OfflineService {
   constructor(private prisma: PrismaService) {}
 
   async getOfflineModules(usuarioId: string): Promise<OfflineModuleDto[]> {
+    void usuarioId;
+
     const algoritmos = await this.prisma.algoritmo.findMany({
       where: { activo: true },
     });
@@ -43,7 +45,7 @@ export class OfflineService {
       throw new NotFoundException('Algoritmo no encontrado');
     }
 
-    const engine = getEngine(algoritmo.nombre);
+    getEngine(algoritmo.nombre);
     const pseudocode = this.getPseudocode(algoritmo.nombre);
 
     // Obtener ejercicios

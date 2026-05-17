@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
 import { createTestApp } from './create-test-app';

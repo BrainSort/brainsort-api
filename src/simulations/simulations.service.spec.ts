@@ -3,6 +3,7 @@ import { SimulationsService } from './simulations.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadgesService } from '../badges/badges.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { executeWithTimeout } from './engines/registry';
 
 // Mock del registry de engines
 jest.mock('./engines/registry', () => ({
@@ -171,6 +172,73 @@ describe('SimulationsService', () => {
           'user-1',
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('debe rechazar valores que no son enteros positivos dentro del rango permitido', async () => {
+      mockPrismaService.algoritmo.findUnique.mockResolvedValue(mockAlgoritmo);
+
+      await expect(
+        service.createSimulation(
+          {
+            algoritmoId: 'algo-1',
+            conjuntoDeDatos: {
+              valores: [5, 2.5, 1000, 1],
+              tipoOrigen: 'Personalizado',
+              tamano: 4,
+            },
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('debe generar datos aleatorios cuando el tipoOrigen es Predeterminado', async () => {
+      mockPrismaService.algoritmo.findUnique.mockResolvedValue(mockAlgoritmo);
+      mockPrismaService.sesionSimulacion.create.mockResolvedValue({
+        id: 'sesion-1',
+      });
+
+      await service.createSimulation(
+        {
+          algoritmoId: 'algo-1',
+          conjuntoDeDatos: {
+            valores: [5, 2, 8, 1],
+            tipoOrigen: 'Predeterminado',
+            tamano: 4,
+          },
+        },
+        'user-1',
+      );
+
+      expect(executeWithTimeout).toHaveBeenCalledWith(
+        'Bubble Sort',
+        expect.any(Array),
+      );
+      const [, data] = (executeWithTimeout as jest.Mock).mock.calls.at(-1);
+      expect(data.length).toBeGreaterThanOrEqual(8);
+      expect(data.length).toBeLessThanOrEqual(15);
+    });
+
+    it('debe convertir errores del engine en BadRequestException', async () => {
+      (executeWithTimeout as jest.Mock).mockRejectedValueOnce(
+        new Error('Timeout: Engine execution exceeded 10 seconds'),
+      );
+      mockPrismaService.algoritmo.findUnique.mockResolvedValue(mockAlgoritmo);
+
+      await expect(
+        service.createSimulation(
+          {
+            algoritmoId: 'algo-1',
+            conjuntoDeDatos: {
+              valores: [5, 2, 8, 1],
+              tipoOrigen: 'Personalizado',
+              tamano: 4,
+            },
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrismaService.sesionSimulacion.create).not.toHaveBeenCalled();
     });
 
     it('debe crear SesionSimulacion en la base de datos', async () => {

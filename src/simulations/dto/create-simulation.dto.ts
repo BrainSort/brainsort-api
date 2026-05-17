@@ -7,7 +7,6 @@ import {
   IsInt,
   Min,
   Max,
-  IsOptional,
   ArrayMinSize,
   ArrayMaxSize,
   ValidateNested,
