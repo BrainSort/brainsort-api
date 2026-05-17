@@ -231,6 +231,28 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('refreshToken');
     });
 
+    it('debe refrescar tokens de administrador exitosamente', async () => {
+      mockJwtService.verify.mockReturnValue({
+        sub: 'admin-1',
+        correo: 'admin@brainsort.edu',
+        rol: 'Administrador',
+        tipo: 'administrador',
+      });
+      mockPrismaService.administrador.findUnique.mockResolvedValue({
+        id: 'admin-1',
+        correo: 'admin@brainsort.edu',
+      });
+
+      const result = await service.refresh('valid-admin-refresh-token');
+
+      expect(result).toHaveProperty('token');
+      expect(result).toHaveProperty('refreshToken');
+      expect(mockPrismaService.usuario.findUnique).not.toHaveBeenCalled();
+      expect(mockPrismaService.administrador.findUnique).toHaveBeenCalledWith({
+        where: { id: 'admin-1' },
+      });
+    });
+
     it('debe rechazar refresh token inválido', async () => {
       mockJwtService.verify.mockImplementation(() => {
         throw new Error('invalid token');

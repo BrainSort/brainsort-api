@@ -125,12 +125,14 @@ describe('ProgressService', () => {
       ];
 
       mockPrismaService.progresoUsuario.findMany.mockResolvedValue(mockRanking);
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(2);
 
       const result = await service.getRanking(10, 0);
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('posicion');
-      expect(result[0].posicion).toBe(1);
+      expect(result.ranking).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.ranking[0]).toHaveProperty('posicion');
+      expect(result.ranking[0].posicion).toBe(1);
     });
   });
 

@@ -16,6 +16,14 @@ interface Algoritmo {
   dificultad: string;
 }
 
+interface AlgoritmoDetalle extends Algoritmo {
+  pseudocode: Array<{
+    line: number;
+    text: string;
+    indent: number;
+  }>;
+}
+
 interface LibraryResponse {
   data: {
     categorias: string[];
@@ -128,6 +136,51 @@ describe('AlgorithmsController (e2e)', () => {
       expect(body.data).toHaveProperty('algoritmos');
       expect(body.data.algoritmos).toHaveLength(0);
       expect(body.data.totalAlgoritmos).toBe(0);
+    });
+  });
+
+  describe('GET /api/algoritmos/:id', () => {
+    it('debe retornar pseudocódigo normalizado para el frontend', async () => {
+      const libraryResponse: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: '/api/biblioteca?nombre=bubble',
+        });
+
+      const libraryBody = JSON.parse(
+        libraryResponse.payload,
+      ) as LibraryResponse;
+      const algoritmoId = libraryBody.data.algoritmos[0]?.id;
+
+      if (!algoritmoId) {
+        console.warn('No hay algoritmo Bubble Sort para probar detalle');
+        return;
+      }
+
+      const response: LightMyRequestResponse = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: 'GET',
+          url: `/api/algoritmos/${algoritmoId}`,
+        });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload) as { data: AlgoritmoDetalle };
+
+      expect(Array.isArray(body.data.pseudocode)).toBe(true);
+      expect(body.data.pseudocode.length).toBeGreaterThan(0);
+      expect(body.data.pseudocode[0]).toEqual(
+        expect.objectContaining({
+          line: expect.any(Number),
+          text: expect.any(String),
+          indent: expect.any(Number),
+        }),
+      );
+      expect(body.data.pseudocode[0]).not.toHaveProperty('numero');
+      expect(body.data.pseudocode[0]).not.toHaveProperty('codigo');
     });
   });
 });

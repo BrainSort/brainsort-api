@@ -140,8 +140,10 @@ describe('ExercisesModule (e2e)', () => {
       expect(body.data).toHaveProperty('puntosTotales');
 
       if (body.data.correcto) {
+        expect(body.data).toHaveProperty('feedbackPositivo');
         expect(body.data.puntosTotales).toBeGreaterThan(puntosAntes);
       } else {
+        expect(body.data).toHaveProperty('feedbackNegativo');
         expect(body.data.puntosTotales).toBe(puntosAntes);
       }
     });

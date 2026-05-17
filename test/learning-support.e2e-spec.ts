@@ -164,6 +164,8 @@ describe('Learning support flows (e2e)', () => {
 
     expect(downloadResponse.statusCode).toBe(200);
     const downloadBody = JSON.parse(downloadResponse.payload);
+    expect(downloadBody.data.algoritmoId).toBe(firstModule.algoritmoId);
+    expect(downloadBody.data.version).toBe(firstModule.version);
     expect(downloadBody.data.meta.id).toBe(firstModule.algoritmoId);
     expect(Array.isArray(downloadBody.data.pseudocode)).toBe(true);
     expect(Array.isArray(downloadBody.data.ejercicios)).toBe(true);

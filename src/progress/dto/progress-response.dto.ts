@@ -59,3 +59,14 @@ export class RankingResponseDto {
   @ApiProperty({ description: 'Nivel actual' })
   nivelActual: number;
 }
+
+export class LeaderboardResponseDto {
+  @ApiProperty({
+    type: [RankingResponseDto],
+    description: 'Entradas del ranking ordenadas por puntos descendentes',
+  })
+  ranking: RankingResponseDto[];
+
+  @ApiProperty({ description: 'Total de usuarios con progreso registrado' })
+  total: number;
+}

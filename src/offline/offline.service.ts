@@ -54,6 +54,8 @@ export class OfflineService {
     });
 
     return {
+      algoritmoId: algoritmo.id,
+      version: '1.0.0',
       meta: {
         id: algoritmo.id,
         nombre: algoritmo.nombre,

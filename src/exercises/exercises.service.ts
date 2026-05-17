@@ -121,6 +121,8 @@ export class ExercisesService {
     return {
       correcto: isCorrect,
       feedback,
+      feedbackPositivo: isCorrect ? feedback : undefined,
+      feedbackNegativo: isCorrect ? undefined : feedback,
       puntosGanados,
       rachaDias: progreso.rachaDias,
       posicionRanking,
