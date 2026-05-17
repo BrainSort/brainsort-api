@@ -66,7 +66,9 @@ describe('BadgesService', () => {
         },
       ];
 
-      mockPrismaService.insignia.findMany.mockImplementation(async () => mockBadges);
+      mockPrismaService.insignia.findMany.mockImplementation(
+        async () => mockBadges,
+      );
 
       const result = await service.getAllBadges();
 
