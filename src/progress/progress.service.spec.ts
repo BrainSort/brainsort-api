@@ -1,19 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProgressService } from './progress.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { BadgesService } from '../badges/badges.service';
 
 describe('ProgressService', () => {
   let service: ProgressService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     progresoUsuario: {
       findUnique: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
     },
     sesionSimulacion: {
       count: jest.fn(),
+      findMany: jest.fn(),
     },
     respuestaEjercicio: {
       count: jest.fn(),
@@ -21,15 +23,37 @@ describe('ProgressService', () => {
     usuario: {
       findUnique: jest.fn(),
     },
+    insignia: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    progresoInsignia: {
+      findMany: jest.fn().mockResolvedValue([]),
+      create: jest.fn(),
+    },
+    algoritmo: {
+      count: jest.fn(),
+    },
+  };
+
+  const mockBadgesService = {
+    checkAndAward: jest.fn().mockResolvedValue(undefined),
+    getAllBadges: jest.fn().mockResolvedValue([]),
+    getUserBadges: jest.fn().mockResolvedValue([]),
+    invalidateCache: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProgressService,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: BadgesService,
+          useValue: mockBadgesService,
         },
       ],
     }).compile();

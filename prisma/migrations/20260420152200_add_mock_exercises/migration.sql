@@ -3,7 +3,7 @@
 -- This migration adds them to the database so they can be fetched via API
 
 -- Insert Bubble Sort exercise
-INSERT INTO "ejercicios_prediccion" (id, pregunta, respuestaCorrecta, dificultad, feedbackPositivo, feedbackNegativo, "algoritmoId", "createdAt")
+INSERT INTO "ejercicios_prediccion" (id, pregunta, "respuestaCorrecta", dificultad, "feedbackPositivo", "feedbackNegativo", "algoritmoId", "createdAt")
 SELECT 
   gen_random_uuid(),
   'Dado el arreglo [5, 2, 8, 1], ¿cuál es el resultado después de la primera pasada completa de Bubble Sort?',
@@ -21,7 +21,7 @@ AND NOT EXISTS (
 );
 
 -- Insert Selection Sort exercise
-INSERT INTO "ejercicios_prediccion" (id, pregunta, respuestaCorrecta, dificultad, feedbackPositivo, feedbackNegativo, "algoritmoId", "createdAt")
+INSERT INTO "ejercicios_prediccion" (id, pregunta, "respuestaCorrecta", dificultad, "feedbackPositivo", "feedbackNegativo", "algoritmoId", "createdAt")
 SELECT 
   gen_random_uuid(),
   'En Selection Sort, dado el arreglo [4, 7, 1, 3], ¿cuál es el primer intercambio que se realiza?',
@@ -39,7 +39,7 @@ AND NOT EXISTS (
 );
 
 -- Insert Insertion Sort exercise
-INSERT INTO "ejercicios_prediccion" (id, pregunta, respuestaCorrecta, dificultad, feedbackPositivo, feedbackNegativo, "algoritmoId", "createdAt")
+INSERT INTO "ejercicios_prediccion" (id, pregunta, "respuestaCorrecta", dificultad, "feedbackPositivo", "feedbackNegativo", "algoritmoId", "createdAt")
 SELECT 
   gen_random_uuid(),
   'En Insertion Sort, dado el arreglo [3, 1, 4, 2], ¿cuál es el estado del arreglo después de insertar el segundo elemento?',

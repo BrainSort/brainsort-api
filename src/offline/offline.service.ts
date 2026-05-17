@@ -58,7 +58,7 @@ export class OfflineService {
         complejidadEspacio: algoritmo.complejidadEspacio,
         categoria: algoritmo.categoria,
       },
-      pseudocode: engine.pseudocode,
+      pseudocode: (engine as any).pseudocode,
       ejercicios: ejercicios.map((ejercicio) => ({
         id: ejercicio.id,
         pregunta: ejercicio.pregunta,

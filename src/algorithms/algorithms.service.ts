@@ -38,6 +38,7 @@ export class AlgorithmsService {
       complejidadTiempo: row.complejidadTiempo,
       complejidadEspacio: row.complejidadEspacio,
       categoria: row.categoria,
+      tags: row.tags,
     };
   }
 
@@ -56,6 +57,18 @@ export class AlgorithmsService {
         contains: nombre,
         mode: Prisma.QueryMode.insensitive,
       };
+    }
+
+    if (query.tags) {
+      const tagsArray = Array.isArray(query.tags)
+        ? query.tags
+        : query.tags.split(',').map((t: string) => t.trim());
+
+      if (tagsArray.length > 0) {
+        where.tags = {
+          hasSome: tagsArray,
+        };
+      }
     }
 
     const algoritmos = await this.prisma.algoritmo.findMany({
@@ -96,6 +109,7 @@ export class AlgorithmsService {
       complejidadTiempo: algoritmo.complejidadTiempo,
       complejidadEspacio: algoritmo.complejidadEspacio,
       categoria: algoritmo.categoria,
+      tags: algoritmo.tags,
       pseudocode: (algoritmo.pseudocodigo as any[]) || [],
     };
   }
