@@ -59,7 +59,9 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
-      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
+      mockPrismaService.algoritmo.count.mockResolvedValue(
+        mockAlgorithms.length,
+      );
 
       const result = await service.getLibrary({});
 
@@ -85,7 +87,9 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
-      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
+      mockPrismaService.algoritmo.count.mockResolvedValue(
+        mockAlgorithms.length,
+      );
 
       const result = await service.getLibrary({ categoria: 'Ordenamiento' });
 
@@ -115,7 +119,9 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
-      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
+      mockPrismaService.algoritmo.count.mockResolvedValue(
+        mockAlgorithms.length,
+      );
 
       const result = await service.getLibrary({ nombre: 'bubble' });
 
