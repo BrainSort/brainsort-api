@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 describe('ProgressModule (e2e)', () => {
   let app: INestApplication<NestFastifyApplication>;
@@ -16,10 +17,7 @@ describe('ProgressModule (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication(new FastifyAdapter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createTestApp(moduleFixture);
 
     // Registrar usuario nuevo para tener un estado limpio de progreso
     const email = `progress_e2e_${Date.now()}@example.com`;
@@ -30,14 +28,15 @@ describe('ProgressModule (e2e)', () => {
         method: 'POST',
         url: '/api/auth/register',
         payload: {
-          email,
-          password: 'Password123!',
+          correo: email,
+          contrasena: 'Password123!',
           nombre: 'Progreso E2E User',
+          rol: 'Estudiante',
         },
       });
 
     const registerBody = JSON.parse(registerResponse.payload);
-    authToken = registerBody.accessToken;
+    authToken = registerBody.data.token;
   });
 
   afterAll(async () => {
@@ -51,7 +50,7 @@ describe('ProgressModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: '/api/progreso/mi-progreso',
+          url: '/api/progreso/me',
           headers: {
             authorization: `Bearer ${authToken}`,
           },
@@ -60,9 +59,9 @@ describe('ProgressModule (e2e)', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload);
 
-      expect(body).toHaveProperty('puntosTotales');
-      expect(body.puntosTotales).toBe(0);
-      expect(body.nivelActual).toBe(1);
+      expect(body.data).toHaveProperty('puntosTotales');
+      expect(body.data.puntosTotales).toBe(0);
+      expect(body.data.nivelActual).toBe(1);
     });
 
     it('debe completar una sesión (sincronizar) y verificar progreso actualizado', async () => {
@@ -91,7 +90,7 @@ describe('ProgressModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'POST',
-          url: '/api/sync/progreso',
+          url: '/api/progress/sync',
           headers: {
             authorization: `Bearer ${authToken}`,
           },
@@ -116,14 +115,14 @@ describe('ProgressModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: '/api/progreso/mi-progreso',
+          url: '/api/progreso/me',
           headers: {
             authorization: `Bearer ${authToken}`,
           },
         });
 
       const progressBody = JSON.parse(progressResponse.payload);
-      expect(progressBody.puntosTotales).toBeGreaterThan(0);
+      expect(progressBody.data.puntosTotales).toBeGreaterThan(0);
 
       // 4. Verificar que aparece en el ranking
       const rankingResponse: LightMyRequestResponse = await app
@@ -132,16 +131,20 @@ describe('ProgressModule (e2e)', () => {
         .inject({
           method: 'GET',
           url: '/api/progreso/ranking',
+          headers: {
+            authorization: `Bearer ${authToken}`,
+          },
         });
 
       expect(rankingResponse.statusCode).toBe(200);
       const rankingBody = JSON.parse(rankingResponse.payload);
 
-      expect(Array.isArray(rankingBody)).toBe(true);
+      expect(Array.isArray(rankingBody.data)).toBe(true);
       // El usuario debería estar en el ranking, o al menos el endpoint responde
-      if (rankingBody.length > 0) {
-        expect(rankingBody[0]).toHaveProperty('usuario');
-        expect(rankingBody[0]).toHaveProperty('puntosTotales');
+      if (rankingBody.data.length > 0) {
+        expect(rankingBody.data[0]).toHaveProperty('usuarioId');
+        expect(rankingBody.data[0]).toHaveProperty('nombre');
+        expect(rankingBody.data[0]).toHaveProperty('puntosTotales');
       }
     });
 
@@ -151,13 +154,13 @@ describe('ProgressModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: '/api/progreso/mi-progreso',
+          url: '/api/progreso/me',
         });
 
       expect(response.statusCode).toBe(401);
     });
 
-    it('debe permitir ver el ranking sin autenticación', async () => {
+    it('debe requerir autenticación para ver el ranking', async () => {
       const response: LightMyRequestResponse = await app
         .getHttpAdapter()
         .getInstance()
@@ -166,7 +169,7 @@ describe('ProgressModule (e2e)', () => {
           url: '/api/progreso/ranking',
         });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(401);
     });
   });
 });

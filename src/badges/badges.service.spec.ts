@@ -69,7 +69,7 @@ describe('BadgesService', () => {
       mockPrismaService.insignia.findMany.mockImplementation(
         async () => mockBadges,
       );
-
+      service.invalidateCache();
       const result = await service.getAllBadges();
 
       expect(result).toHaveLength(2);

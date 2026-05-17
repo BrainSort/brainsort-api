@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 describe('ExercisesModule (e2e)', () => {
   let app: INestApplication<NestFastifyApplication>;
@@ -18,10 +19,7 @@ describe('ExercisesModule (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication(new FastifyAdapter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createTestApp(moduleFixture);
 
     // 1. Registrar usuario para obtener token
     const email = `exercises_e2e_${Date.now()}@example.com`;
@@ -32,14 +30,15 @@ describe('ExercisesModule (e2e)', () => {
         method: 'POST',
         url: '/api/auth/register',
         payload: {
-          email,
-          password: 'Password123!',
+          correo: email,
+          contrasena: 'Password123!',
           nombre: 'Ejercicios E2E User',
+          rol: 'Estudiante',
         },
       });
 
     const registerBody = JSON.parse(registerResponse.payload);
-    authToken = registerBody.accessToken;
+    authToken = registerBody.data.token;
 
     // 2. Obtener un algoritmo de la biblioteca para buscar sus ejercicios
     const libraryResponse: LightMyRequestResponse = await app
@@ -75,7 +74,7 @@ describe('ExercisesModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: `/api/ejercicios/algoritmo/${algoritmoId}`,
+          url: `/api/ejercicios/${algoritmoId}`,
           headers: {
             authorization: `Bearer ${authToken}`,
           },
@@ -84,15 +83,15 @@ describe('ExercisesModule (e2e)', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload);
 
-      expect(Array.isArray(body)).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
 
       // Si el seed incluyó ejercicios, guardamos uno para la siguiente prueba
-      if (body.length > 0) {
-        ejercicioId = body[0].id;
-        expect(body[0]).toHaveProperty('pregunta');
-        expect(body[0]).toHaveProperty('dificultad');
+      if (body.data.length > 0) {
+        ejercicioId = body.data[0].id;
+        expect(body.data[0]).toHaveProperty('pregunta');
+        expect(body.data[0]).toHaveProperty('dificultad');
         // Validar que no se filtra la respuesta correcta al cliente
-        expect(body[0]).not.toHaveProperty('respuestaCorrecta');
+        expect(body.data[0]).not.toHaveProperty('respuestaCorrecta');
       }
     });
 
@@ -108,13 +107,13 @@ describe('ExercisesModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: '/api/progreso/mi-progreso',
+          url: '/api/progreso/me',
           headers: {
             authorization: `Bearer ${authToken}`,
           },
         });
       const progressBeforeBody = JSON.parse(progressBefore.payload);
-      const puntosAntes = progressBeforeBody.puntosTotales || 0;
+      const puntosAntes = progressBeforeBody.data.puntosTotales || 0;
 
       // Nota: En un entorno de pruebas real con base de datos de test,
       // necesitaríamos consultar la DB para saber la respuesta correcta,
@@ -136,17 +135,17 @@ describe('ExercisesModule (e2e)', () => {
           },
         });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);
 
-      expect(body).toHaveProperty('correcto');
-      expect(body).toHaveProperty('feedback');
-      expect(body).toHaveProperty('puntosTotales');
+      expect(body.data).toHaveProperty('correcto');
+      expect(body.data).toHaveProperty('feedback');
+      expect(body.data).toHaveProperty('puntosTotales');
 
-      if (body.correcto) {
-        expect(body.puntosTotales).toBeGreaterThan(puntosAntes);
+      if (body.data.correcto) {
+        expect(body.data.puntosTotales).toBeGreaterThan(puntosAntes);
       } else {
-        expect(body.puntosTotales).toBe(puntosAntes);
+        expect(body.data.puntosTotales).toBe(puntosAntes);
       }
     });
 
@@ -176,7 +175,7 @@ describe('ExercisesModule (e2e)', () => {
         .getInstance()
         .inject({
           method: 'GET',
-          url: `/api/ejercicios/algoritmo/${algoritmoId}`,
+          url: `/api/ejercicios/${algoritmoId}`,
         });
 
       expect(response.statusCode).toBe(401);

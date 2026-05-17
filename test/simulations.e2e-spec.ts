@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 // Tipos para respuestas de simulación
 interface Algoritmo {
@@ -28,12 +29,16 @@ interface SimulationStep {
 }
 
 interface SimulationResponse {
-  pasos: SimulationStep[];
-  sesionId: string;
+  data: {
+    pasos: SimulationStep[];
+    totalPasos: number;
+  };
 }
 
 interface AuthResponse {
-  accessToken: string;
+  data: {
+    token: string;
+  };
 }
 
 describe('SimulationsController (e2e)', () => {
@@ -45,10 +50,7 @@ describe('SimulationsController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication(new FastifyAdapter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createTestApp(moduleFixture);
 
     // Registrar usuario para obtener token de autenticación
     const email = `simtest${Date.now()}@example.com`;
@@ -59,14 +61,15 @@ describe('SimulationsController (e2e)', () => {
         method: 'POST',
         url: '/api/auth/register',
         payload: {
-          email,
-          password: 'Password123!',
+          correo: email,
+          contrasena: 'Password123!',
           nombre: 'Simulation Test',
+          rol: 'Estudiante',
         },
       });
 
     const registerBody = JSON.parse(registerResponse.payload) as AuthResponse;
-    authToken = registerBody.accessToken;
+    authToken = registerBody.data.token;
   });
 
   afterAll(async () => {
@@ -106,7 +109,7 @@ describe('SimulationsController (e2e)', () => {
           payload: {
             algoritmoId,
             conjuntoDeDatos: {
-              tipo: 'Predeterminado',
+              tipoOrigen: 'Predeterminado',
               tamano: 5,
               valores: [10, 5, 8, 3, 1],
             },
@@ -115,9 +118,9 @@ describe('SimulationsController (e2e)', () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload) as SimulationResponse;
-      expect(body).toHaveProperty('pasos');
-      expect(body).toHaveProperty('sesionId');
-      expect(Array.isArray(body.pasos)).toBe(true);
+      expect(body.data).toHaveProperty('pasos');
+      expect(body.data).toHaveProperty('totalPasos');
+      expect(Array.isArray(body.data.pasos)).toBe(true);
     });
 
     it('debe rechazar simulación sin autenticación', async () => {
@@ -148,7 +151,7 @@ describe('SimulationsController (e2e)', () => {
           payload: {
             algoritmoId,
             conjuntoDeDatos: {
-              tipo: 'Predeterminado',
+              tipoOrigen: 'Predeterminado',
               tamano: 5,
               valores: [10, 5, 8, 3, 1],
             },
@@ -169,9 +172,9 @@ describe('SimulationsController (e2e)', () => {
             authorization: `Bearer ${authToken}`,
           },
           payload: {
-            algoritmoId: 'id-inexistente-12345',
+            algoritmoId: '00000000-0000-0000-0000-000000000000',
             conjuntoDeDatos: {
-              tipo: 'Predeterminado',
+              tipoOrigen: 'Predeterminado',
               tamano: 5,
               valores: [10, 5, 8, 3, 1],
             },
@@ -212,7 +215,7 @@ describe('SimulationsController (e2e)', () => {
           payload: {
             algoritmoId,
             conjuntoDeDatos: {
-              tipo: 'Predeterminado',
+              tipoOrigen: 'Predeterminado',
               tamano: 5,
               valores: [null, 5, 8, 3, 1], // Valor nulo inválido
             },
@@ -253,7 +256,7 @@ describe('SimulationsController (e2e)', () => {
           payload: {
             algoritmoId,
             conjuntoDeDatos: {
-              tipo: 'Predeterminado',
+              tipoOrigen: 'Predeterminado',
               tamano: 5,
               valores: [10, 5, 8, 3, 1],
             },
@@ -262,9 +265,9 @@ describe('SimulationsController (e2e)', () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload) as SimulationResponse;
-      expect(body.pasos.length).toBeGreaterThan(0);
+      expect(body.data.pasos.length).toBeGreaterThan(0);
 
-      body.pasos.forEach((paso: SimulationStep) => {
+      body.data.pasos.forEach((paso: SimulationStep) => {
         expect(paso).toHaveProperty('numeroPaso');
         expect(paso).toHaveProperty('tipoOperacion');
         expect(paso).toHaveProperty('indicesActivos');

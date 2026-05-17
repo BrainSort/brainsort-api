@@ -6,15 +6,18 @@ import {
 } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 // Tipos para respuestas de autenticación
 interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    email: string;
-    id: string;
-    nombre: string;
+  data: {
+    token: string;
+    refreshToken: string;
+    usuario: {
+      correo: string;
+      id: string;
+      nombre: string;
+    };
   };
 }
 
@@ -31,10 +34,7 @@ describe('AuthController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication(new FastifyAdapter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createTestApp(moduleFixture);
   });
 
   afterAll(async () => {
@@ -51,18 +51,19 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email: uniqueEmail,
-            password: 'Password123!',
+            correo: uniqueEmail,
+            contrasena: 'Password123!',
             nombre: 'Test User',
+            rol: 'Estudiante',
           },
         });
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload) as AuthResponse;
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
-      expect(body).toHaveProperty('user');
-      expect(body.user.email).toBe(uniqueEmail);
+      expect(body.data).toHaveProperty('token');
+      expect(body.data).toHaveProperty('refreshToken');
+      expect(body.data).toHaveProperty('usuario');
+      expect(body.data.usuario.correo).toBe(uniqueEmail);
     });
 
     it('debe rechazar registro con email duplicado', async () => {
@@ -76,9 +77,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
             nombre: 'Test User',
+            rol: 'Estudiante',
           },
         });
 
@@ -90,15 +92,16 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
             nombre: 'Test User 2',
+            rol: 'Estudiante',
           },
         });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.payload) as ErrorResponse;
-      expect(body.message).toContain('ya existe');
+      expect(body.message).toContain('Email already registered');
     });
 
     it('debe rechazar registro con email inválido', async () => {
@@ -109,9 +112,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email: 'email-invalido',
-            password: 'Password123!',
+            correo: 'email-invalido',
+            contrasena: 'Password123!',
             nombre: 'Test User',
+            rol: 'Estudiante',
           },
         });
 
@@ -127,9 +131,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email: uniqueEmail,
-            password: '123',
+            correo: uniqueEmail,
+            contrasena: '123',
             nombre: 'Test User',
+            rol: 'Estudiante',
           },
         });
 
@@ -149,9 +154,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
             nombre: 'Login Test',
+            rol: 'Estudiante',
           },
         });
 
@@ -163,16 +169,16 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/login',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
           },
         });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload) as AuthResponse;
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
-      expect(body).toHaveProperty('user');
+      expect(body.data).toHaveProperty('token');
+      expect(body.data).toHaveProperty('refreshToken');
+      expect(body.data).toHaveProperty('usuario');
     });
 
     it('debe rechazar login con credenciales incorrectas', async () => {
@@ -183,8 +189,8 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/login',
           payload: {
-            email: 'noexiste@example.com',
-            password: 'Password123!',
+            correo: 'noexiste@example.com',
+            contrasena: 'Password123!',
           },
         });
 
@@ -202,9 +208,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
             nombre: 'Wrong Pass Test',
+            rol: 'Estudiante',
           },
         });
 
@@ -216,8 +223,8 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/login',
           payload: {
-            email,
-            password: 'WrongPassword123!',
+            correo: email,
+            contrasena: 'WrongPassword123!',
           },
         });
 
@@ -237,9 +244,10 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/register',
           payload: {
-            email,
-            password: 'Password123!',
+            correo: email,
+            contrasena: 'Password123!',
             nombre: 'Refresh Test',
+            rol: 'Estudiante',
           },
         });
 
@@ -253,14 +261,14 @@ describe('AuthController (e2e)', () => {
           method: 'POST',
           url: '/api/auth/refresh',
           payload: {
-            refreshToken: registerBody.refreshToken,
+            refreshToken: registerBody.data.refreshToken,
           },
         });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.payload) as AuthResponse;
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
+      expect(body.data).toHaveProperty('token');
+      expect(body.data).toHaveProperty('refreshToken');
     });
 
     it('debe rechazar refresh token inválido', async () => {

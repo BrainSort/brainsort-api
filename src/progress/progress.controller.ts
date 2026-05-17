@@ -39,6 +39,12 @@ export class ProgressController {
     @Query('limit') limit: number = 20,
     @Query('offset') offset: number = 0,
   ) {
-    return this.progressService.getRanking(limit, offset);
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+
+    return this.progressService.getRanking(
+      Number.isFinite(parsedLimit) ? parsedLimit : 20,
+      Number.isFinite(parsedOffset) ? parsedOffset : 0,
+    );
   }
 }

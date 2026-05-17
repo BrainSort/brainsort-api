@@ -100,14 +100,16 @@ export class ProgressService {
       },
     });
 
-    return ranking.map((item, index) => ({
-      usuarioId: item.usuario.id,
-      nombre: item.usuario.nombre,
-      puntosTotales: item.puntosTotales,
-      posicion: offset + index + 1,
-      rachaDias: item.rachaDias,
-      nivelActual: item.nivelActual,
-    }));
+    return ranking
+      .filter((item) => item.usuario)
+      .map((item, index) => ({
+        usuarioId: item.usuario.id,
+        nombre: item.usuario.nombre,
+        puntosTotales: item.puntosTotales,
+        posicion: offset + index + 1,
+        rachaDias: item.rachaDias,
+        nivelActual: item.nivelActual,
+      }));
   }
 
   async updateProgress(
