@@ -39,6 +39,9 @@ export class AlgorithmLibraryCardDto {
 
   @ApiProperty({ enum: ['Ordenamiento', 'Busqueda', 'EstructurasLineales'] })
   categoria: string;
+
+  @ApiProperty({ type: [String] })
+  tags: string[];
 }
 
 /**
@@ -66,6 +69,9 @@ export class AlgorithmDetailResponseDto {
 
   @ApiProperty({ enum: ['Ordenamiento', 'Busqueda', 'EstructurasLineales'] })
   categoria: string;
+
+  @ApiProperty({ type: [String] })
+  tags: string[];
 
   @ApiProperty({
     type: [PseudocodeLineDto],

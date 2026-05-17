@@ -90,7 +90,7 @@ export class SimulationsService {
         estadoActual: 'Pausa',
         pasoActual: 0,
       },
-      pseudocode: (algoritmo.pseudocodigo as PseudocodeLine[]) || [],
+      pseudocode: (algoritmo.pseudocodigo as unknown as PseudocodeLine[]) || [],
       totalPasos: steps.length,
       pasos: steps.map((step) => ({
         numeroPaso: step.numeroPaso,

@@ -2,12 +2,18 @@ import { AlgorithmDefinition, SimulationStep } from './engine.interface';
 import { BubbleSort } from './bubble-sort.engine';
 import { SelectionSort } from './selection-sort.engine';
 import { InsertionSort } from './insertion-sort.engine';
+import { Stack } from './stack.engine';
+import { Queue } from './queue.engine';
+import { LinkedList } from './linked-list.engine';
 import { NotFoundException } from '@nestjs/common';
 
 const ENGINES: Record<string, AlgorithmDefinition> = {
   'Bubble Sort': BubbleSort,
   'Selection Sort': SelectionSort,
   'Insertion Sort': InsertionSort,
+  Stack: Stack,
+  Queue: Queue,
+  'Linked List': LinkedList,
 };
 
 export function getEngine(nombre: string): AlgorithmDefinition {

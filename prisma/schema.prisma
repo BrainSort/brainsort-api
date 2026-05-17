@@ -24,9 +24,11 @@ model Usuario {
   updatedAt   DateTime @updatedAt
 
   // Relaciones
-  progreso    ProgresoUsuario?
-  sesiones    SesionSimulacion[]
-  respuestas  RespuestaEjercicio[]
+  progreso             ProgresoUsuario?
+  resultadoDiagnostico ResultadoDiagnostico?
+  rutaAprendizaje      RutaAprendizaje?
+  sesiones             SesionSimulacion[]
+  respuestas           RespuestaEjercicio[]
 
   @@map("usuarios")
 }
@@ -70,6 +72,7 @@ model Algoritmo {
   complejidadTiempo String    // Notación Big O, ej: "O(n²)"
   complejidadEspacio String   // Notación Big O, ej: "O(1)"
   categoria         CategoriaAlgoritmo
+  tags              String[]
   pseudocodigo      Json?     // Array de {numero: number, codigo: string}
   activo            Boolean   @default(true)
   createdAt         DateTime  @default(now())
@@ -219,4 +222,51 @@ model RespuestaEjercicio {
   ejercicio    EjercicioPrediccion @relation(fields: [ejercicioId], references: [id])
 
   @@map("respuestas_ejercicio")
+}
+
+// ═══════════════════════════════════════
+// Entidad: PreguntaDiagnostico
+// Preguntas para el test inicial de perfilamiento
+// ═══════════════════════════════════════
+model PreguntaDiagnostico {
+  id              String   @id @default(uuid())
+  pregunta        String   @db.Text
+  opciones        String[] // Array de strings con las opciones
+  indiceCorrecto  Int
+  createdAt       DateTime @default(now())
+
+  @@map("preguntas_diagnostico")
+}
+
+// ═══════════════════════════════════════
+// Entidad: ResultadoDiagnostico
+// Resultado del test inicial de un usuario
+// ═══════════════════════════════════════
+model ResultadoDiagnostico {
+  id              String   @id @default(uuid())
+  puntaje         Int      // 0 a 100
+  fechaEvaluacion DateTime @default(now())
+
+  // Relaciones
+  usuarioId       String   @unique
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("resultados_diagnostico")
+}
+
+// ═══════════════════════════════════════
+// Entidad: RutaAprendizaje
+// Secuencia sugerida de algoritmos para el usuario
+// ═══════════════════════════════════════
+model RutaAprendizaje {
+  id              String   @id @default(uuid())
+  algoritmosId    String[] // Array de IDs de Algoritmo en orden sugerido
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  usuarioId       String   @unique
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("rutas_aprendizaje")
 }
