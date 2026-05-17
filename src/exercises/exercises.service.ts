@@ -184,17 +184,17 @@ export class ExercisesService {
     return Math.floor(diffTime / oneDay);
   }
 
+  /**
+   * Calcula el nivel del usuario usando la fórmula cuadrática del spec.
+   * Referencia: gamification-xp-progression.spec.md §3.1
+   * Fórmula: nivel = floor((-1 + sqrt(1 + 4*XP/50)) / 2), clamped [1, 32]
+   */
   private calculateLevel(puntosTotales: number): number {
-    // Nivel 1: 0-99 puntos
-    // Nivel 2: 100-299 puntos
-    // Nivel 3: 300-599 puntos
-    // Nivel 4: 600-999 puntos
-    // Nivel 5: 1000+ puntos
-    if (puntosTotales < 100) return 1;
-    if (puntosTotales < 300) return 2;
-    if (puntosTotales < 600) return 3;
-    if (puntosTotales < 1000) return 4;
-    return 5;
+    if (puntosTotales <= 0) return 1;
+    const nivel = Math.floor(
+      (-1 + Math.sqrt(1 + (4 * puntosTotales) / 50)) / 2,
+    );
+    return Math.min(Math.max(nivel, 1), 32);
   }
 
   private async calculateRanking(puntosTotales: number): Promise<number> {
