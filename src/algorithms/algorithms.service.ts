@@ -5,6 +5,7 @@ import {
   AlgorithmLibraryCardDto,
   AlgorithmDetailResponseDto,
   LibraryResponseDto,
+  PseudocodeLineDto,
 } from './dto/algorithm-response.dto';
 
 const DESCRIPCION_TARJETA_MAX = 140;
@@ -39,6 +40,46 @@ export class AlgorithmsService {
       categoria: row.categoria,
       tags: row.tags,
     };
+  }
+
+  private normalizarPseudocodigo(raw: unknown): PseudocodeLineDto[] {
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+
+    return raw
+      .map((linea, index) => {
+        if (!linea || typeof linea !== 'object') {
+          return null;
+        }
+
+        const item = linea as Record<string, unknown>;
+        const line =
+          typeof item.line === 'number'
+            ? item.line
+            : typeof item.numero === 'number'
+              ? item.numero
+              : index + 1;
+        const text =
+          typeof item.text === 'string'
+            ? item.text
+            : typeof item.codigo === 'string'
+              ? item.codigo
+              : '';
+        const indent =
+          typeof item.indent === 'number'
+            ? item.indent
+            : text.match(/^\s*/)?.[0].length
+              ? Math.floor((text.match(/^\s*/)?.[0].length ?? 0) / 2)
+              : 0;
+
+        return {
+          line,
+          text: text.trimStart(),
+          indent,
+        };
+      })
+      .filter((linea): linea is PseudocodeLineDto => Boolean(linea));
   }
 
   async getLibrary(query: any): Promise<LibraryResponseDto> {
@@ -109,7 +150,7 @@ export class AlgorithmsService {
       complejidadEspacio: algoritmo.complejidadEspacio,
       categoria: algoritmo.categoria,
       tags: algoritmo.tags,
-      pseudocode: (algoritmo.pseudocodigo as any[]) || [],
+      pseudocode: this.normalizarPseudocodigo(algoritmo.pseudocodigo),
     };
   }
 }

@@ -9,6 +9,18 @@ export class ExerciseResultDto {
   })
   feedback: string;
 
+  @ApiProperty({
+    description: 'Feedback positivo cuando la respuesta es correcta',
+    required: false,
+  })
+  feedbackPositivo?: string;
+
+  @ApiProperty({
+    description: 'Feedback negativo cuando la respuesta es incorrecta',
+    required: false,
+  })
+  feedbackNegativo?: string;
+
   @ApiProperty({ description: 'Puntos ganados por el ejercicio' })
   puntosGanados: number;
 

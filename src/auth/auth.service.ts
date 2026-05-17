@@ -148,6 +148,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
+    if (payload.tipo === 'administrador') {
+      const admin = await this.prisma.administrador.findUnique({
+        where: { id: payload.sub },
+      });
+
+      if (!admin) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      return this.generateTokens(
+        admin.id,
+        admin.correo,
+        'Administrador',
+        'administrador',
+      );
+    }
+
     const user = await this.prisma.usuario.findUnique({
       where: { id: payload.sub },
     });
@@ -160,7 +177,7 @@ export class AuthService {
       user.id,
       user.correo,
       user.rol,
-      payload.tipo || 'usuario',
+      'usuario',
     );
 
     return tokens;

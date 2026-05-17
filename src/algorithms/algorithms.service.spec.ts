@@ -192,7 +192,7 @@ describe('AlgorithmsService', () => {
         complejidadEspacio: 'O(1)',
         categoria: 'Ordenamiento',
         tags: ['basico'],
-        pseudocodigo: [{ line: 1, text: 'Comparar adyacentes', indent: 0 }],
+        pseudocodigo: [{ numero: 1, codigo: '  Comparar adyacentes' }],
       };
       mockPrismaService.algoritmo.findUnique.mockResolvedValue(algoritmo);
 
@@ -207,7 +207,7 @@ describe('AlgorithmsService', () => {
         complejidadEspacio: algoritmo.complejidadEspacio,
         categoria: algoritmo.categoria,
         tags: algoritmo.tags,
-        pseudocode: algoritmo.pseudocodigo,
+        pseudocode: [{ line: 1, text: 'Comparar adyacentes', indent: 1 }],
       });
     });
 

@@ -70,7 +70,7 @@ describe('DiagnosticsService', () => {
       { id: 'algo-insertion', nombre: 'Insertion Sort' },
     ];
 
-    it('debe calcular puntaje y generar ruta inicial para bajo desempeño', async () => {
+    it('debe calcular puntaje y generar ruta estandar con desempeno suficiente', async () => {
       mockPrismaService.preguntaDiagnostico.findMany.mockResolvedValue(
         preguntas,
       );
@@ -101,11 +101,11 @@ describe('DiagnosticsService', () => {
       expect(mockPrismaService.rutaAprendizaje.upsert).toHaveBeenCalledWith({
         where: { usuarioId: 'user-1' },
         update: {
-          algoritmosId: ['algo-insertion', 'algo-selection', 'algo-bubble'],
+          algoritmosId: ['algo-bubble', 'algo-insertion', 'algo-selection'],
         },
         create: {
           usuarioId: 'user-1',
-          algoritmosId: ['algo-insertion', 'algo-selection', 'algo-bubble'],
+          algoritmosId: ['algo-bubble', 'algo-insertion', 'algo-selection'],
         },
       });
     });

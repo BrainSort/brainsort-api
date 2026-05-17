@@ -399,7 +399,7 @@ describe('ExercisesService', () => {
       });
       mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
         ...mockProgreso,
-        puntosTotales: 90,
+        puntosTotales: 290,
       });
       mockPrismaService.progresoUsuario.update.mockResolvedValue({});
       mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
@@ -411,7 +411,7 @@ describe('ExercisesService', () => {
         'user-1',
       );
 
-      expect(result.puntosTotales).toBe(120);
+      expect(result.puntosTotales).toBe(320);
       expect(result.nivelActual).toBe(2);
     });
   });

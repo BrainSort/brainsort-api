@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  LeaderboardResponseDto,
   ProgressResponseDto,
-  RankingResponseDto,
 } from './dto/progress-response.dto';
 import { BadgesService } from '../badges/badges.service';
 
@@ -83,7 +83,7 @@ export class ProgressService {
   async getRanking(
     limit: number = 20,
     offset: number = 0,
-  ): Promise<RankingResponseDto[]> {
+  ): Promise<LeaderboardResponseDto> {
     const ranking = await this.prisma.progresoUsuario.findMany({
       skip: offset,
       take: limit,
@@ -100,16 +100,21 @@ export class ProgressService {
       },
     });
 
-    return ranking
-      .filter((item) => item.usuario)
-      .map((item, index) => ({
-        usuarioId: item.usuario.id,
-        nombre: item.usuario.nombre,
-        puntosTotales: item.puntosTotales,
-        posicion: offset + index + 1,
-        rachaDias: item.rachaDias,
-        nivelActual: item.nivelActual,
-      }));
+    const total = await this.prisma.progresoUsuario.count();
+
+    return {
+      ranking: ranking
+        .filter((item) => item.usuario)
+        .map((item, index) => ({
+          usuarioId: item.usuario.id,
+          nombre: item.usuario.nombre,
+          puntosTotales: item.puntosTotales,
+          posicion: offset + index + 1,
+          rachaDias: item.rachaDias,
+          nivelActual: item.nivelActual,
+        })),
+      total,
+    };
   }
 
   async updateProgress(

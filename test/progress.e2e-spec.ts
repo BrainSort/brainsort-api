@@ -136,12 +136,13 @@ describe('ProgressModule (e2e)', () => {
       expect(rankingResponse.statusCode).toBe(200);
       const rankingBody = JSON.parse(rankingResponse.payload);
 
-      expect(Array.isArray(rankingBody.data)).toBe(true);
+      expect(Array.isArray(rankingBody.data.ranking)).toBe(true);
+      expect(typeof rankingBody.data.total).toBe('number');
       // El usuario debería estar en el ranking, o al menos el endpoint responde
-      if (rankingBody.data.length > 0) {
-        expect(rankingBody.data[0]).toHaveProperty('usuarioId');
-        expect(rankingBody.data[0]).toHaveProperty('nombre');
-        expect(rankingBody.data[0]).toHaveProperty('puntosTotales');
+      if (rankingBody.data.ranking.length > 0) {
+        expect(rankingBody.data.ranking[0]).toHaveProperty('usuarioId');
+        expect(rankingBody.data.ranking[0]).toHaveProperty('nombre');
+        expect(rankingBody.data.ranking[0]).toHaveProperty('puntosTotales');
       }
     });
 
