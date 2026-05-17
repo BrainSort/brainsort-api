@@ -59,7 +59,6 @@ describe('ProgressService', () => {
     }).compile();
 
     service = module.get<ProgressService>(ProgressService);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {

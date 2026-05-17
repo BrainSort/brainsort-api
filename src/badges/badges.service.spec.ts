@@ -9,25 +9,26 @@ describe('BadgesService', () => {
 
   const mockPrismaService = {
     insignia: {
-      findMany: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     progresoUsuario: {
-      findUnique: jest.fn(),
+      findUnique: jest.fn().mockResolvedValue(null),
     },
     progresoInsignia: {
-      findMany: jest.fn(),
-      create: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
+      create: jest.fn().mockResolvedValue({}),
     },
     sesionSimulacion: {
-      count: jest.fn(),
-      findMany: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     algoritmo: {
-      count: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
     },
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BadgesService,
@@ -65,7 +66,7 @@ describe('BadgesService', () => {
         },
       ];
 
-      mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
+      (prismaService.insignia.findMany as jest.Mock).mockReturnValue(Promise.resolve(mockBadges));
 
       const result = await service.getAllBadges();
 
@@ -112,13 +113,13 @@ describe('BadgesService', () => {
 
       const result = await service.getUserBadges('user1');
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(result[0].desbloqueada).toBe(true);
       expect(result[0]).toHaveProperty('fechaObtencion');
     });
 
     it('should throw NotFoundException when progress not found', async () => {
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(null);
+      (prismaService.progresoUsuario.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(service.getUserBadges('user1')).rejects.toThrow(
         'Progreso no encontrado',
@@ -145,14 +146,12 @@ describe('BadgesService', () => {
         rachaDias: 5,
       };
 
-      mockPrismaService.insignia.findMany.mockResolvedValue(mockBadges);
-      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
-        mockProgress,
-      );
-      mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
-      mockPrismaService.sesionSimulacion.count.mockResolvedValue(1);
-      mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
-      mockPrismaService.algoritmo.count.mockResolvedValue(5);
+      (prismaService.insignia.findMany as jest.Mock).mockResolvedValue(mockBadges);
+      (prismaService.progresoUsuario.findUnique as jest.Mock).mockResolvedValue(mockProgress);
+      (prismaService.progresoInsignia.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.sesionSimulacion.count as jest.Mock).mockResolvedValue(1);
+      (prismaService.sesionSimulacion.findMany as jest.Mock).mockResolvedValue([{ algoritmoId: 'alg1' }]);
+      (prismaService.algoritmo.count as jest.Mock).mockResolvedValue(5);
       mockPrismaService.progresoInsignia.create.mockResolvedValue({});
 
       await service.checkAndAward('user1');

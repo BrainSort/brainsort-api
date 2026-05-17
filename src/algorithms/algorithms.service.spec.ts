@@ -10,6 +10,7 @@ describe('AlgorithmsService', () => {
     algoritmo: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -58,6 +59,7 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
+      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
 
       const result = await service.getLibrary({});
 
@@ -83,6 +85,7 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
+      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
 
       const result = await service.getLibrary({ categoria: 'Ordenamiento' });
 
@@ -93,6 +96,7 @@ describe('AlgorithmsService', () => {
           categoria: 'Ordenamiento',
           activo: true,
         },
+        orderBy: [{ categoria: 'asc' }, { nombre: 'asc' }],
       });
     });
 
@@ -111,6 +115,7 @@ describe('AlgorithmsService', () => {
       ];
 
       mockPrismaService.algoritmo.findMany.mockResolvedValue(mockAlgorithms);
+      mockPrismaService.algoritmo.count.mockResolvedValue(mockAlgorithms.length);
 
       const result = await service.getLibrary({ nombre: 'bubble' });
 
@@ -120,6 +125,7 @@ describe('AlgorithmsService', () => {
 
     it('should return empty array when no algorithms match', async () => {
       mockPrismaService.algoritmo.findMany.mockResolvedValue([]);
+      mockPrismaService.algoritmo.count.mockResolvedValue(0);
 
       const result = await service.getLibrary({ nombre: 'nonexistent' });
 
