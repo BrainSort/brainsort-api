@@ -11,7 +11,9 @@ export class LearningPathService {
     });
 
     if (!ruta) {
-      throw new NotFoundException('El usuario no tiene una ruta asignada. Debe realizar el diagnóstico.');
+      throw new NotFoundException(
+        'El usuario no tiene una ruta asignada. Debe realizar el diagnóstico.',
+      );
     }
 
     // Obtener detalles de los algoritmos de la ruta
@@ -23,12 +25,14 @@ export class LearningPathService {
         descripcion: true,
         dificultad: true,
         categoria: true,
-        tags: true
-      }
+        tags: true,
+      },
     });
 
     // Ordenar los algoritmos según el orden de la ruta
-    const algoritmosOrdenados = ruta.algoritmosId.map(id => algoritmos.find(a => a.id === id)).filter(Boolean);
+    const algoritmosOrdenados = ruta.algoritmosId
+      .map((id) => algoritmos.find((a) => a.id === id))
+      .filter(Boolean);
 
     return {
       id: ruta.id,
