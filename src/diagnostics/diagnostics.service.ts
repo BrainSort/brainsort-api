@@ -42,7 +42,7 @@ export class DiagnosticsService {
         : 0;
 
     // Guardar resultado
-    const resultado = await this.prisma.resultadoDiagnostico.upsert({
+    await this.prisma.resultadoDiagnostico.upsert({
       where: { usuarioId },
       update: { puntaje, fechaEvaluacion: new Date() },
       create: { usuarioId, puntaje },

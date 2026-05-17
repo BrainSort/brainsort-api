@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { getEngine, executeWithTimeout } from './engines/registry';
+import { executeWithTimeout } from './engines/registry';
 import { CreateSimulationDto } from './dto/create-simulation.dto';
 import { SimulationStepDto } from './dto/simulation-step.dto';
 import { BadgesService } from '../badges/badges.service';
@@ -68,11 +68,8 @@ export class SimulationsService {
       );
     }
 
-    // 5. Obtener engine para ejecutar la simulación
-    const engine = getEngine(algoritmo.nombre);
-
-    // 6. Crear SesionSimulacion
-    const sesion = await this.prisma.sesionSimulacion.create({
+    // 5. Crear SesionSimulacion
+    await this.prisma.sesionSimulacion.create({
       data: {
         usuarioId,
         algoritmoId,
@@ -83,7 +80,7 @@ export class SimulationsService {
       },
     });
 
-    // 7. Retornar simulación completa según contrato CO3
+    // 6. Retornar simulación completa según contrato CO3
     return {
       simulacion: {
         velocidadReproduccion: 1.0,

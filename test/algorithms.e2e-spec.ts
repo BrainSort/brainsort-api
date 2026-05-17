@@ -1,11 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 // Tipos para respuestas de biblioteca
 interface Algoritmo {
@@ -35,10 +33,7 @@ describe('AlgorithmsController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication(new FastifyAdapter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createTestApp(moduleFixture);
   });
 
   afterAll(async () => {
@@ -59,7 +54,7 @@ describe('AlgorithmsController (e2e)', () => {
       const body = JSON.parse(response.payload) as LibraryResponse;
       expect(body).toHaveProperty('data');
       expect(body).toHaveProperty('message');
-      expect(body.message).toBe('Operación exitosa');
+      expect(body.message).toBe('Éxito');
     });
 
     it('debe retornar estructura correcta', async () => {

@@ -6,7 +6,6 @@ import {
   AlgorithmDetailResponseDto,
   LibraryResponseDto,
 } from './dto/algorithm-response.dto';
-import { getEngine } from '../simulations/engines/registry';
 
 const DESCRIPCION_TARJETA_MAX = 140;
 

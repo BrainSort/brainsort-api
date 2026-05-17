@@ -7,10 +7,11 @@ import {
   IsInt,
   Min,
   Max,
-  IsOptional,
   ArrayMinSize,
   ArrayMaxSize,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ConjuntoDeDatosDto {
   @ApiProperty({
@@ -54,5 +55,7 @@ export class CreateSimulationDto {
     type: ConjuntoDeDatosDto,
     description: 'Conjunto de datos para la simulación',
   })
+  @ValidateNested()
+  @Type(() => ConjuntoDeDatosDto)
   conjuntoDeDatos: ConjuntoDeDatosDto;
 }

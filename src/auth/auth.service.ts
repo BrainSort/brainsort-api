@@ -141,10 +141,15 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    const payload = this.jwtService.verify(refreshToken);
+    let payload: { sub: string; tipo?: string };
+    try {
+      payload = this.jwtService.verify(refreshToken);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
 
     const user = await this.prisma.usuario.findUnique({
-      where: { id: payload.sub as string },
+      where: { id: payload.sub },
     });
 
     if (!user) {
