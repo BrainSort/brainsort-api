@@ -18,6 +18,12 @@ export class OfflineModuleDto {
 }
 
 export class OfflineModuleDownloadDto {
+  @ApiProperty({ description: 'ID del algoritmo incluido en el módulo' })
+  algoritmoId: string;
+
+  @ApiProperty({ description: 'Versión del módulo descargable' })
+  version: string;
+
   @ApiProperty({ description: 'Metadatos del algoritmo' })
   meta: {
     id: string;

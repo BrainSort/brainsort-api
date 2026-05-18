@@ -42,7 +42,7 @@ export class DiagnosticsService {
         : 0;
 
     // Guardar resultado
-    const resultado = await this.prisma.resultadoDiagnostico.upsert({
+    await this.prisma.resultadoDiagnostico.upsert({
       where: { usuarioId },
       update: { puntaje, fechaEvaluacion: new Date() },
       create: { usuarioId, puntaje },
@@ -66,15 +66,43 @@ export class DiagnosticsService {
     const insertion = algoritmos.find((a) =>
       a.nombre.toLowerCase().includes('insertion'),
     )?.id;
+    const merge = algoritmos.find((a) =>
+      a.nombre.toLowerCase().includes('merge'),
+    )?.id;
+    const stack = algoritmos.find((a) =>
+      a.nombre.toLowerCase().includes('stack'),
+    )?.id;
+    const queue = algoritmos.find((a) =>
+      a.nombre.toLowerCase().includes('queue'),
+    )?.id;
+    const linkedList = algoritmos.find((a) =>
+      a.nombre.toLowerCase().includes('linked'),
+    )?.id;
 
-    let algoritmosId = [];
-    if (bubble && selection && insertion) {
-      if (puntaje < 50) {
-        algoritmosId = [bubble, selection, insertion];
-      } else {
-        algoritmosId = [insertion, selection, bubble];
-      }
+    let algoritmosId: string[] = [];
+    if (puntaje < 50) {
+      algoritmosId = [
+        stack,
+        queue,
+        bubble,
+        insertion,
+        linkedList,
+        selection,
+        merge,
+      ].filter((id): id is string => !!id);
     } else {
+      algoritmosId = [
+        bubble,
+        insertion,
+        stack,
+        queue,
+        selection,
+        linkedList,
+        merge,
+      ].filter((id): id is string => !!id);
+    }
+
+    if (algoritmosId.length === 0) {
       algoritmosId = algoritmos.map((a) => a.id);
     }
 

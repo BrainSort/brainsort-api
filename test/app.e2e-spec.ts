@@ -1,25 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { LightMyRequestResponse } from 'fastify';
 import { AppModule } from './../src/app.module';
+import { createTestApp } from './create-test-app';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication<NestFastifyApplication>;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createTestApp(moduleFixture);
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('/api/biblioteca (GET)', async () => {
+    const response: LightMyRequestResponse = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: 'GET',
+        url: '/api/biblioteca',
+      });
+
+    expect(response.statusCode).toBe(200);
   });
 });

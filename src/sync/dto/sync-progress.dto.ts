@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString, IsDate, IsInt, IsBoolean } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsString,
+  IsDate,
+  IsInt,
+  IsBoolean,
+  ValidateNested,
+} from 'class-validator';
 
 export class OfflineSessionDto {
   @ApiProperty({ description: 'ID del algoritmo' })
@@ -7,10 +15,12 @@ export class OfflineSessionDto {
   algoritmoId: string;
 
   @ApiProperty({ description: 'Fecha de inicio de la sesión' })
+  @Type(() => Date)
   @IsDate()
   fechaInicio: Date;
 
   @ApiProperty({ description: 'Fecha de fin de la sesión' })
+  @Type(() => Date)
   @IsDate()
   fechaFin: Date;
 
@@ -29,6 +39,8 @@ export class SyncProgressDto {
     type: [OfflineSessionDto],
   })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OfflineSessionDto)
   sesiones: OfflineSessionDto[];
 }
 
