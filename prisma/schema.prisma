@@ -89,6 +89,7 @@ enum CategoriaAlgoritmo {
   Ordenamiento
   Busqueda
   EstructurasLineales
+  EstructurasArboles
 }
 
 // ═══════════════════════════════════════
@@ -99,9 +100,12 @@ enum CategoriaAlgoritmo {
 // ═══════════════════════════════════════
 model EjercicioPrediccion {
   id                String   @id @default(uuid())
+  tipo              TipoEjercicio @default(PrediccionTexto)
   pregunta          String   @db.Text
   respuestaCorrecta String
   dificultad        DificultadEjercicio
+  opciones          Json?
+  contenido         Json?
   feedbackPositivo  String   @db.Text
   feedbackNegativo  String   @db.Text
   createdAt         DateTime @default(now())
@@ -118,6 +122,12 @@ enum DificultadEjercicio {
   Facil
   Medio
   Dificil
+}
+
+enum TipoEjercicio {
+  PrediccionTexto
+  CompletarPseudocodigo
+  OrdenarBarras
 }
 
 // ═══════════════════════════════════════

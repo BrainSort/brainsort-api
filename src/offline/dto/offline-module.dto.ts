@@ -45,8 +45,11 @@ export class OfflineModuleDownloadDto {
   @ApiProperty({ description: 'Ejercicios del algoritmo' })
   ejercicios: Array<{
     id: string;
+    tipo: string;
     pregunta: string;
     dificultad: string;
+    opciones?: unknown;
+    contenido?: unknown;
     respuestaCorrecta: string;
     feedbackPositivo: string;
     feedbackNegativo: string;

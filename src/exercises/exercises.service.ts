@@ -19,8 +19,12 @@ export class ExercisesService {
 
     return ejercicios.map((ejercicio) => ({
       id: ejercicio.id,
+      algoritmoId: ejercicio.algoritmoId,
+      tipo: ejercicio.tipo,
       pregunta: ejercicio.pregunta,
       dificultad: ejercicio.dificultad,
+      opciones: ejercicio.opciones,
+      contenido: ejercicio.contenido,
       algoritmo: {
         id: ejercicio.algoritmo.id,
         nombre: ejercicio.algoritmo.nombre,
@@ -132,6 +136,15 @@ export class ExercisesService {
   }
 
   private compareAnswers(userAnswer: string, correctAnswer: string): boolean {
+    const parsedUser = this.tryParseJson(userAnswer);
+    const parsedCorrect = this.tryParseJson(correctAnswer);
+
+    if (parsedUser.ok && parsedCorrect.ok) {
+      return (
+        JSON.stringify(parsedUser.value) === JSON.stringify(parsedCorrect.value)
+      );
+    }
+
     // Normalizar respuestas para comparación (trim, lowercase, sin espacios extra)
     const normalizedUser = userAnswer.trim().toLowerCase().replace(/\s+/g, ' ');
     const normalizedCorrect = correctAnswer
@@ -139,6 +152,16 @@ export class ExercisesService {
       .toLowerCase()
       .replace(/\s+/g, ' ');
     return normalizedUser === normalizedCorrect;
+  }
+
+  private tryParseJson(
+    value: string,
+  ): { ok: true; value: unknown } | { ok: false } {
+    try {
+      return { ok: true, value: JSON.parse(value) };
+    } catch {
+      return { ok: false };
+    }
   }
 
   private calculatePoints(dificultad: string): number {
