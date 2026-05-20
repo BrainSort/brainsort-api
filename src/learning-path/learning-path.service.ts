@@ -34,10 +34,21 @@ export class LearningPathService {
       .map((id) => algoritmos.find((a) => a.id === id))
       .filter(Boolean);
 
+    // Obtener el último diagnóstico si existe
+    const diagnostico = await this.prisma.resultadoDiagnostico.findUnique({
+      where: { usuarioId },
+    });
+
     return {
       id: ruta.id,
       createdAt: ruta.createdAt,
       algoritmos: algoritmosOrdenados,
+      diagnostico: diagnostico
+        ? {
+            puntaje: diagnostico.puntaje,
+            fechaEvaluacion: diagnostico.fechaEvaluacion,
+          }
+        : null,
     };
   }
 }

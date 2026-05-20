@@ -626,60 +626,73 @@ async function main() {
     });
   }
 
-  // 5. Seed de Preguntas Diagnóstico (incluyendo estructuras lineales)
-  const preguntasDiagnostico = await prisma.preguntaDiagnostico.count();
-  if (preguntasDiagnostico === 0) {
-    const preguntas = [
-      {
-        pregunta: '¿Cuál es el tiempo de complejidad promedio de Bubble Sort?',
-        opciones: ['O(n)', 'O(n log n)', 'O(n²)', 'O(1)'],
-        indiceCorrecto: 2,
-      },
-      {
-        pregunta: '¿Qué algoritmo utiliza la técnica "Divide y Vencerás"?',
-        opciones: ['Insertion Sort', 'Merge Sort', 'Selection Sort', 'Bubble Sort'],
-        indiceCorrecto: 1,
-      },
-      {
-        pregunta: '¿Qué significa que un algoritmo de ordenamiento sea "Estable"?',
-        opciones: [
-          'Nunca arroja errores durante la ejecución.',
-          'El tiempo de ejecución siempre es el mismo.',
-          'Mantiene el orden relativo de elementos con claves iguales.',
-          'Utiliza O(1) de memoria extra.'
-        ],
-        indiceCorrecto: 2,
-      },
-      {
-        pregunta: '¿Qué principio sigue una estructura tipo Stack?',
-        opciones: ['FIFO', 'LIFO', 'Aleatorio', 'Ordenado'],
-        indiceCorrecto: 1,
-      },
-      {
-        pregunta: '¿Cuál es la diferencia principal entre un Stack y una Queue?',
-        opciones: [
-          'El Stack usa más memoria que la Queue.',
-          'La Queue es más rápida que el Stack.',
-          'En un Stack, el último en entrar es el primero en salir; en una Queue, el primero en entrar es el primero en salir.',
-          'No hay diferencia entre ambas estructuras.'
-        ],
-        indiceCorrecto: 2,
-      },
-      {
-        pregunta: '¿Qué ventaja tiene una Lista Enlazada sobre un arreglo?',
-        opciones: [
-          'Acceso más rápido por índice.',
-          'Menor uso de memoria por elemento.',
-          'Inserción y eliminación eficiente sin necesidad de redimensionar.',
-          'Búsqueda binaria disponible de forma nativa.'
-        ],
-        indiceCorrecto: 2,
-      },
-    ];
+  // 5. Seed de Preguntas Diagnóstico (incluyendo estructuras lineales y avanzadas)
+  await prisma.preguntaDiagnostico.deleteMany();
+  const preguntas = [
+    {
+      pregunta: '¿Cuál es el tiempo de complejidad promedio de Bubble Sort?',
+      opciones: ['O(n)', 'O(n log n)', 'O(n²)', 'O(1)'],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué algoritmo utiliza la técnica "Divide y Vencerás"?',
+      opciones: ['Insertion Sort', 'Merge Sort', 'Selection Sort', 'Bubble Sort'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Qué significa que un algoritmo de ordenamiento sea "Estable"?',
+      opciones: [
+        'Nunca arroja errores durante la ejecución.',
+        'El tiempo de ejecución siempre es el mismo.',
+        'Mantiene el orden relativo de elementos con claves iguales.',
+        'Utiliza O(1) de memoria extra.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué principio sigue una estructura tipo Stack?',
+      opciones: ['FIFO', 'LIFO', 'Aleatorio', 'Ordenado'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Cuál es la diferencia principal entre un Stack y una Queue?',
+      opciones: [
+        'El Stack usa más memoria que la Queue.',
+        'La Queue es más rápida que el Stack.',
+        'En un Stack, el último en entrar es el primero en salir; en una Queue, el primero en entrar es el primero en salir.',
+        'No hay diferencia entre ambas estructuras.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué ventaja tiene una Lista Enlazada sobre un arreglo?',
+      opciones: [
+        'Acceso más rápido por índice.',
+        'Menor uso de memoria por elemento.',
+        'Inserción y eliminación eficiente sin necesidad de redimensionar.',
+        'Búsqueda binaria disponible de forma nativa.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Cuál es la complejidad temporal de la Búsqueda Binaria en el peor de los casos?',
+      opciones: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Cuál es el propósito principal de un Segment Tree?',
+      opciones: [
+        'Responder consultas y actualizaciones de rango en O(log n).',
+        'Ordenar un arreglo en tiempo lineal.',
+        'Estructura para implementar colas LIFO.',
+        'Búsqueda secuencial en listas enlazadas.',
+      ],
+      indiceCorrecto: 0,
+    },
+  ];
 
-    for (const p of preguntas) {
-      await prisma.preguntaDiagnostico.create({ data: p });
-    }
+  for (const p of preguntas) {
+    await prisma.preguntaDiagnostico.create({ data: p });
   }
 
   console.log('✅ Seed completado');
