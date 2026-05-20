@@ -42,18 +42,31 @@ export class ProgressService {
       },
     });
 
-    const ejerciciosCorrectos = await this.prisma.respuestaEjercicio.count({
+    const ejerciciosTotales = await this.prisma.ejercicioPrediccion.count({
       where: {
-        usuarioId,
-        correcto: true,
+        algoritmo: {
+          activo: true,
+        },
       },
     });
 
-    const ejerciciosTotales = await this.prisma.respuestaEjercicio.count({
+    const respuestasCorrectasUnicas = await this.prisma.respuestaEjercicio.findMany({
       where: {
         usuarioId,
+        correcto: true,
+        ejercicio: {
+          algoritmo: {
+            activo: true,
+          },
+        },
       },
+      select: {
+        ejercicioId: true,
+      },
+      distinct: ['ejercicioId'],
     });
+
+    const ejerciciosCorrectos = respuestasCorrectasUnicas.length;
 
     // Formatear insignias
     const insignias = progreso.insignias.map((ui) => ({

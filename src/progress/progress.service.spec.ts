@@ -35,6 +35,9 @@ describe('ProgressService', () => {
       count: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
     },
+    ejercicioPrediccion: {
+      count: jest.fn(),
+    },
   };
 
   const mockBadgesService = {
@@ -87,7 +90,8 @@ describe('ProgressService', () => {
         mockProgress,
       );
       mockPrismaService.sesionSimulacion.count.mockResolvedValue(5);
-      mockPrismaService.respuestaEjercicio.count.mockResolvedValue(10);
+      mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([]);
+      mockPrismaService.ejercicioPrediccion.count.mockResolvedValue(10);
 
       const result = await service.getUserProgress('user1');
 
