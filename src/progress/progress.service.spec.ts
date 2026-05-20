@@ -19,6 +19,7 @@ describe('ProgressService', () => {
     },
     respuestaEjercicio: {
       count: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     usuario: {
       findUnique: jest.fn(),
@@ -32,6 +33,7 @@ describe('ProgressService', () => {
     },
     algoritmo: {
       count: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
     },
   };
 
