@@ -8,7 +8,30 @@ import { executeWithTimeout } from './engines/registry';
 import { CreateSimulationDto } from './dto/create-simulation.dto';
 import { SimulationStepDto } from './dto/simulation-step.dto';
 import { BadgesService } from '../badges/badges.service';
-import { PseudocodeLine } from './engines/engine.interface';
+import {
+  PseudocodeLine,
+  SimulationMarker,
+  SimulationStep,
+} from './engines/engine.interface';
+
+type VisualizationRole = {
+  label?: string;
+  color: string;
+};
+
+type VisualizationConfig = {
+  roles?: Record<string, VisualizationRole>;
+  lineLabels?: Record<string, string[]>;
+  recursion?: {
+    waitingRole?: string;
+    waitingLabel?: string;
+  };
+};
+
+type RawPseudocodeLine = Partial<PseudocodeLine> & {
+  numero?: number;
+  codigo?: string;
+};
 
 @Injectable()
 export class SimulationsService {
@@ -87,7 +110,9 @@ export class SimulationsService {
         estadoActual: 'Pausa',
         pasoActual: 0,
       },
-      pseudocode: (algoritmo.pseudocodigo as unknown as PseudocodeLine[]) || [],
+      pseudocode: this.normalizePseudocode(
+        algoritmo.pseudocodigo as unknown as RawPseudocodeLine[],
+      ),
       totalPasos: steps.length,
       pasos: steps.map((step) => ({
         numeroPaso: step.numeroPaso,
@@ -95,8 +120,64 @@ export class SimulationsService {
         indicesActivos: step.indicesActivos,
         estadoArray: step.estadoArray,
         lineaPseudocodigo: step.lineaPseudocodigo,
+        marcadores: this.buildMarkers(
+          step,
+          algoritmo.visualizacion as VisualizationConfig | null,
+        ),
+        nodosArbol: step.nodosArbol,
       })),
     };
+  }
+
+  private normalizePseudocode(
+    lines: RawPseudocodeLine[] | null,
+  ): PseudocodeLine[] {
+    return (lines ?? []).map((line, index) => {
+      const text = line.text ?? line.codigo ?? '';
+      const leadingSpaces = text.match(/^ */)?.[0].length ?? 0;
+
+      return {
+        line: line.line ?? line.numero ?? index + 1,
+        text,
+        indent: line.indent ?? Math.floor(leadingSpaces / 2),
+      };
+    });
+  }
+
+  private buildMarkers(
+    step: SimulationStep,
+    visualizacion: VisualizationConfig | null,
+  ): SimulationMarker[] {
+    const config = visualizacion ?? {};
+    const roles = config.roles ?? {};
+    const activeRole = roles.activo ?? { color: '#F5A623' };
+    const waitingRoleName = config.recursion?.waitingRole ?? 'esperaRecursion';
+    const waitingRole = roles[waitingRoleName] ?? { color: '#6B7280' };
+    const labelsByLine = config.lineLabels ?? {};
+    const lineLabels = labelsByLine[String(step.lineaPseudocodigo)] ?? [];
+    const markers: SimulationMarker[] = [...(step.marcadores ?? [])];
+
+    step.indicesActivos.forEach((index, position) => {
+      markers.push({
+        index,
+        label: lineLabels[position] ?? `v${position + 1}`,
+        role: 'activo',
+        color: activeRole.color,
+      });
+    });
+
+    step.contexto?.waitingIndices?.forEach((index) => {
+      if (step.indicesActivos.includes(index)) return;
+      if (markers.some((marker) => marker.index === index)) return;
+      markers.push({
+        index,
+        label: config.recursion?.waitingLabel ?? waitingRole.label ?? 'espera',
+        role: waitingRoleName,
+        color: waitingRole.color,
+      });
+    });
+
+    return markers;
   }
 
   private validateData(

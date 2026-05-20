@@ -74,6 +74,7 @@ model Algoritmo {
   categoria         CategoriaAlgoritmo
   tags              String[]
   pseudocodigo      Json?     // Array de {numero: number, codigo: string}
+  visualizacion     Json?     // Config de marcadores visuales por línea/rol
   activo            Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

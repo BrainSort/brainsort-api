@@ -20,6 +20,75 @@ type ExerciseSeed = {
   contenido?: Prisma.InputJsonValue;
 };
 
+const visualizationRoles = {
+  activo: { color: '#F5A623' },
+  intercambio: { color: '#E74C3C' },
+  insercion: { color: '#00D4FF' },
+  esperaRecursion: { label: 'espera', color: '#6B7280' },
+};
+
+function visualizationConfig(nombre: string): Prisma.InputJsonValue {
+  const configs: Record<string, Prisma.InputJsonValue> = {
+    'Bubble Sort': {
+      roles: visualizationRoles,
+      lineLabels: { 3: ['j', 'j+1'], 4: ['j', 'j+1'] },
+    },
+    'Selection Sort': {
+      roles: visualizationRoles,
+      lineLabels: { 4: ['j', 'min'], 6: ['i', 'min'] },
+    },
+    'Insertion Sort': {
+      roles: visualizationRoles,
+      lineLabels: { 3: ['j', 'key'], 4: ['key'], 5: ['key'] },
+    },
+    'Merge Sort': {
+      roles: visualizationRoles,
+      lineLabels: {
+        10: ['izq[i]', 'der[j]'],
+        11: ['k'],
+        12: ['k'],
+        14: ['k'],
+      },
+      recursion: { waitingRole: 'esperaRecursion', waitingLabel: 'espera' },
+    },
+    'Quick Sort': {
+      roles: visualizationRoles,
+      lineLabels: { 2: ['pivotIndex', 'pivot'], 5: ['j', 'pivot'], 6: ['i', 'j'] },
+      recursion: { waitingRole: 'esperaRecursion', waitingLabel: 'espera' },
+    },
+    'Heap Sort': {
+      roles: visualizationRoles,
+      lineLabels: { 3: ['root', 'fin'], 4: ['root', 'child'], 5: ['root', 'child'] },
+    },
+    'Binary Search': {
+      roles: visualizationRoles,
+      lineLabels: { 3: ['low', 'mid', 'high'], 4: ['mid'], 5: ['low', 'mid', 'high'], 6: ['low', 'mid', 'high'] },
+    },
+    'Linear Search': {
+      roles: visualizationRoles,
+      lineLabels: { 2: ['i'], 3: ['i'] },
+    },
+    'Segment Tree': {
+      roles: visualizationRoles,
+      lineLabels: {
+        1: ['nodo'],
+        2: ['hoja'],
+        3: ['nodo'],
+        4: ['izq'],
+        5: ['der'],
+        6: ['nodo', 'izq', 'der'],
+        7: ['nodo'],
+      },
+      recursion: { waitingRole: 'esperaRecursion', waitingLabel: 'espera' },
+    },
+  };
+
+  return configs[nombre] ?? {
+    roles: visualizationRoles,
+    lineLabels: {},
+  };
+}
+
 async function ensureExercise(seed: ExerciseSeed) {
   const algoritmo = await prisma.algoritmo.findUnique({
     where: { nombre: seed.algoritmo },
@@ -128,10 +197,11 @@ async function main() {
   ];
 
   for (const algo of algoritmos) {
+    const data = { ...algo, visualizacion: visualizationConfig(algo.nombre) };
     await prisma.algoritmo.upsert({
       where: { nombre: algo.nombre },
-      update: algo,
-      create: algo,
+      update: data,
+      create: data,
     });
   }
 
@@ -194,10 +264,11 @@ async function main() {
   ];
 
   for (const algo of estructurasLineales) {
+    const data = { ...algo, visualizacion: visualizationConfig(algo.nombre) };
     await prisma.algoritmo.upsert({
       where: { nombre: algo.nombre },
-      update: algo,
-      create: algo,
+      update: data,
+      create: data,
     });
   }
 
@@ -211,11 +282,20 @@ async function main() {
       categoria: 'Ordenamiento' as const,
       tags: ['Divide y Vencerás', 'Estable', 'Recursión'],
       pseudocodigo: [
-        { numero: 1, codigo: 'Si izquierda < derecha' },
-        { numero: 2, codigo: '  mitad = piso((izquierda + derecha) / 2)' },
-        { numero: 3, codigo: '  MergeSort(arreglo, izquierda, mitad)' },
-        { numero: 4, codigo: '  MergeSort(arreglo, mitad + 1, derecha)' },
-        { numero: 5, codigo: '  Merge(arreglo, izquierda, mitad, derecha)' },
+        { numero: 1, codigo: 'MergeSort(arreglo, L, R)' },
+        { numero: 2, codigo: '  Si L == R: retornar' },
+        { numero: 3, codigo: '  M = piso((L + R) / 2)' },
+        { numero: 4, codigo: '  MergeSort(arreglo, L, M)' },
+        { numero: 5, codigo: '  MergeSort(arreglo, M + 1, R)' },
+        { numero: 6, codigo: '  Merge(arreglo, L, M, R)' },
+        { numero: 7, codigo: '    izq = copia de arreglo[L..M]' },
+        { numero: 8, codigo: '    der = copia de arreglo[M+1..R]' },
+        { numero: 9, codigo: '    i = 0; j = 0; k = L' },
+        { numero: 10, codigo: '    Mientras i < tam(izq) y j < tam(der)' },
+        { numero: 11, codigo: '      Si izq[i] <= der[j]: arreglo[k] = izq[i]; i++' },
+        { numero: 12, codigo: '      Si no: arreglo[k] = der[j]; j++' },
+        { numero: 13, codigo: '      k++' },
+        { numero: 14, codigo: '    Copiar sobrantes de izq o der al arreglo' },
       ],
     },
     {
@@ -325,31 +405,22 @@ async function main() {
         { numero: 4, codigo: '  build(2*nodo, inicio, mid)' },
         { numero: 5, codigo: '  build(2*nodo+1, mid+1, fin)' },
         { numero: 6, codigo: '  tree[nodo] = tree[2*nodo] + tree[2*nodo+1]' },
-        { numero: 7, codigo: 'query(nodo, inicio, fin, l, r)' },
-        { numero: 8, codigo: '  Si [inicio, fin] está dentro de [l, r]: devolver tree[nodo]' },
+        { numero: 7, codigo: '  retornar tree[nodo]' },
       ],
     },
   ];
 
   for (const algo of algoritmosExpandidos) {
+    const data = { ...algo, visualizacion: visualizationConfig(algo.nombre) };
     await prisma.algoritmo.upsert({
       where: { nombre: algo.nombre },
-      update: algo,
-      create: algo,
+      update: data,
+      create: data,
     });
   }
 
-  // 3. Seed de ejercicios gamificados: predicción, completar pseudocódigo y ordenar barras
+  // 3. Seed de ejercicios gamificados: completar pseudocódigo y ordenar barras
   const exerciseSeeds: ExerciseSeed[] = [
-    {
-      algoritmo: 'Bubble Sort',
-      tipo: 'PrediccionTexto',
-      pregunta: 'Dado [5, 2, 8, 1], ¿cuál queda después de la primera pasada completa de Bubble Sort?',
-      respuestaCorrecta: '[2, 5, 1, 8]',
-      dificultad: 'Facil',
-      feedbackPositivo: 'Correcto: el mayor burbujea al final en la primera pasada.',
-      feedbackNegativo: 'Revisa las comparaciones adyacentes de izquierda a derecha.',
-    },
     {
       algoritmo: 'Bubble Sort',
       tipo: 'CompletarPseudocodigo',
@@ -373,15 +444,6 @@ async function main() {
     },
     {
       algoritmo: 'Selection Sort',
-      tipo: 'PrediccionTexto',
-      pregunta: 'En [4, 7, 1, 3], ¿cuál es el primer intercambio de Selection Sort?',
-      respuestaCorrecta: 'Intercambiar 4 con 1',
-      dificultad: 'Facil',
-      feedbackPositivo: 'Correcto: primero se busca el mínimo global.',
-      feedbackNegativo: 'Selection Sort selecciona el menor restante y lo lleva al inicio.',
-    },
-    {
-      algoritmo: 'Selection Sort',
       tipo: 'CompletarPseudocodigo',
       pregunta: 'Completa la línea que actualiza el mínimo encontrado.',
       respuestaCorrecta: 'minIndex = j',
@@ -400,15 +462,6 @@ async function main() {
       contenido: { inicial: [4, 7, 1, 3], pasoObjetivo: 'Primer mínimo colocado', objetivo: [1, 7, 4, 3] },
       feedbackPositivo: 'Bien: 1 se intercambia con la primera posición.',
       feedbackNegativo: 'Busca el menor de todo el arreglo y cámbialo por el primer elemento.',
-    },
-    {
-      algoritmo: 'Insertion Sort',
-      tipo: 'PrediccionTexto',
-      pregunta: 'En [3, 1, 4, 2], ¿cómo queda después de insertar el segundo elemento?',
-      respuestaCorrecta: '[1, 3, 4, 2]',
-      dificultad: 'Facil',
-      feedbackPositivo: 'Correcto: 1 se inserta antes de 3.',
-      feedbackNegativo: 'Insertion Sort mantiene ordenada la parte izquierda.',
     },
     {
       algoritmo: 'Insertion Sort',
@@ -446,15 +499,6 @@ async function main() {
     ['Priority Queue', 'Orden de atención para prioridades [2, 5, 1]', '[5, 2, 1]', 'extraerMax(): remover raíz y reordenar heap', [2, 5, 1], [5, 2, 1]],
     ['Segment Tree', 'Construcción por suma para hojas [2, 1, 5, 3]', '[11, 3, 8, 2, 1, 5, 3]', 'tree[nodo] = tree[2*nodo] + tree[2*nodo+1]', [2, 1, 5, 3], [11, 3, 8, 2, 1, 5, 3]],
   ].flatMap(([algoritmo, predPregunta, predRespuesta, pseudoRespuesta, inicial, objetivo]) => [
-    {
-      algoritmo: algoritmo as string,
-      tipo: 'PrediccionTexto' as const,
-      pregunta: `${predPregunta}: ¿cuál es la respuesta esperada?`,
-      respuestaCorrecta: predRespuesta as string,
-      dificultad: algoritmo === 'Priority Queue' || algoritmo === 'Quick Sort' || algoritmo === 'Heap Sort' || algoritmo === 'Segment Tree' ? 'Dificil' as const : 'Medio' as const,
-      feedbackPositivo: 'Correcto: seguiste la operación clave del algoritmo.',
-      feedbackNegativo: 'Revisa qué operación cambia el estado en este paso.',
-    },
     {
       algoritmo: algoritmo as string,
       tipo: 'CompletarPseudocodigo' as const,
@@ -501,59 +545,6 @@ async function main() {
       update: badge,
       create: badge,
     });
-  }
-
-  // Ejercicios de Estructuras Lineales
-  const stackAlgo = await prisma.algoritmo.findUnique({ where: { nombre: 'Stack' } });
-  const queueAlgo = await prisma.algoritmo.findUnique({ where: { nombre: 'Queue' } });
-  const linkedListAlgo = await prisma.algoritmo.findUnique({ where: { nombre: 'Linked List' } });
-
-  if (stackAlgo) {
-    const exists = await prisma.ejercicioPrediccion.findFirst({ where: { algoritmoId: stackAlgo.id } });
-    if (!exists) {
-      await prisma.ejercicioPrediccion.create({
-        data: {
-          pregunta: 'Si se realizan las operaciones push(1), push(2), push(3), pop(), ¿qué valor retorna pop()?',
-          respuestaCorrecta: '3',
-          dificultad: 'Facil' as const,
-          feedbackPositivo: '¡Correcto! El Stack es LIFO: el último en entrar (3) es el primero en salir.',
-          feedbackNegativo: 'Incorrecto. Recuerda: Stack es LIFO. El último elemento insertado (3) es el primero en ser extraído con pop().',
-          algoritmo: { connect: { id: stackAlgo.id } },
-        },
-      });
-    }
-  }
-
-  if (queueAlgo) {
-    const exists = await prisma.ejercicioPrediccion.findFirst({ where: { algoritmoId: queueAlgo.id } });
-    if (!exists) {
-      await prisma.ejercicioPrediccion.create({
-        data: {
-          pregunta: 'Si se realizan enqueue(A), enqueue(B), enqueue(C), dequeue(), ¿qué elemento sale?',
-          respuestaCorrecta: 'A',
-          dificultad: 'Facil' as const,
-          feedbackPositivo: '¡Correcto! La Queue es FIFO: el primer elemento encolado (A) es el primero en salir con dequeue().',
-          feedbackNegativo: 'Incorrecto. La Queue es FIFO (First In, First Out). El elemento A fue el primero en entrar y será el primero en salir.',
-          algoritmo: { connect: { id: queueAlgo.id } },
-        },
-      });
-    }
-  }
-
-  if (linkedListAlgo) {
-    const exists = await prisma.ejercicioPrediccion.findFirst({ where: { algoritmoId: linkedListAlgo.id } });
-    if (!exists) {
-      await prisma.ejercicioPrediccion.create({
-        data: {
-          pregunta: 'En una Lista Enlazada, si insertamos al inicio los valores 1, 2, 3 (en ese orden), ¿cuál es la cabeza (head) resultante?',
-          respuestaCorrecta: '3',
-          dificultad: 'Medio' as const,
-          feedbackPositivo: '¡Correcto! Al insertar al inicio, cada nuevo elemento se convierte en la nueva cabeza. El último insertado (3) es la cabeza.',
-          feedbackNegativo: 'Incorrecto. Al insertar al inicio (prepend), el nuevo nodo se coloca antes del nodo anterior. El orden quedará 3 → 2 → 1, siendo 3 la cabeza.',
-          algoritmo: { connect: { id: linkedListAlgo.id } },
-        },
-      });
-    }
   }
 
   // 5. Seed de Preguntas Diagnóstico (incluyendo estructuras lineales)
