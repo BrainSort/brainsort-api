@@ -420,7 +420,70 @@ async function main() {
   }
 
   // 3. Seed de ejercicios gamificados: completar pseudocódigo y ordenar barras
+  const bsAlgo = await prisma.algoritmo.findUnique({ where: { nombre: 'Binary Search' } });
+  if (bsAlgo) {
+    await prisma.ejercicioPrediccion.deleteMany({
+      where: { algoritmoId: bsAlgo.id },
+    });
+  }
+
+  const binarySearchExercises: ExerciseSeed[] = [
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Cómo se calcula el índice de la mitad (mid) en la búsqueda binaria?',
+      respuestaCorrecta: 'piso((low + high) / 2)',
+      dificultad: 'Facil',
+      opciones: ['piso((low + high) / 2)', 'low + high', 'piso((high - low) / 2)', 'piso(n / 2)'],
+      contenido: { antes: 'mid = ', despues: '' },
+      feedbackPositivo: '¡Excelente! Esta es la fórmula clásica para encontrar el elemento central del rango [low, high].',
+      feedbackNegativo: 'El elemento medio se calcula como el promedio entero de los límites actualizados (low y high).',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'OrdenarBarras',
+      pregunta: 'Si buscamos el número 8 en el arreglo ordenado [2, 4, 6, 8, 10, 12, 14], ¿cuál bloque representa el elemento mid en el primer paso?',
+      respuestaCorrecta: '3',
+      dificultad: 'Medio',
+      contenido: {
+        inicial: [2, 4, 6, 8, 10, 12, 14],
+        pasoObjetivo: 'Primer mid buscando 8',
+        objetivo: [2, 4, 6, 8, 10, 12, 14],
+        modoSeleccion: true,
+      },
+      feedbackPositivo: '¡Correcto! En un arreglo de 7 elementos (índices 0 a 6), el elemento central es el del índice 3, que contiene el valor 8.',
+      feedbackNegativo: 'Incorrecto. Con low=0 y high=6, mid = piso(6/2) = 3. El valor en el índice 3 es 8.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'Si el elemento en la posición mid es mayor que el objetivo, ¿cómo actualizamos el límite superior (high)?',
+      respuestaCorrecta: 'high = mid - 1',
+      dificultad: 'Medio',
+      opciones: ['high = mid - 1', 'high = mid', 'low = mid + 1', 'high = low - 1'],
+      contenido: { antes: 'Si arreglo[mid] > objetivo: ', despues: '' },
+      feedbackPositivo: '¡Correcto! Si el valor es mayor, el objetivo debe estar a la izquierda de mid, descartando mid y la derecha al actualizar high a mid - 1.',
+      feedbackNegativo: 'Como el valor central es mayor que el objetivo, buscamos en la mitad izquierda, reduciendo high a mid - 1.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'OrdenarBarras',
+      pregunta: 'Buscando el número 3 en [1, 3, 5, 7, 9]. El primer mid es 5 (índice 2). Como 3 < 5, el rango se reduce a [1, 3] (índices 0 a 1). ¿Cuál será el índice mid en la siguiente iteración?',
+      respuestaCorrecta: '0',
+      dificultad: 'Dificil',
+      contenido: {
+        inicial: [1, 3, 5, 7, 9],
+        pasoObjetivo: 'Siguiente mid buscando 3 en rango [1, 3]',
+        objetivo: [1, 3, 5, 7, 9],
+        modoSeleccion: true,
+      },
+      feedbackPositivo: '¡Perfecto! El rango activo se convierte en [0, 1]. mid = piso((0+1)/2) = 0, que corresponde al valor 1.',
+      feedbackNegativo: 'Incorrecto. El rango activo se reduce a los índices 0 a 1 ([1, 3]). El nuevo mid es piso((0 + 1)/2) = 0, es decir, el valor 1.',
+    },
+  ];
+
   const exerciseSeeds: ExerciseSeed[] = [
+    ...binarySearchExercises,
     {
       algoritmo: 'Bubble Sort',
       tipo: 'CompletarPseudocodigo',
@@ -490,7 +553,6 @@ async function main() {
     ['Merge Sort', 'Mitades ordenadas de [4, 3, 2, 1]', '[3, 4, 1, 2]', 'Merge(arreglo, izquierda, mitad, derecha)', [4, 3, 2, 1], [3, 4, 1, 2]],
     ['Quick Sort', 'Partición con pivote 3 en [4, 2, 5, 1, 3]', '[2, 1, 3, 4, 5]', 'pivotIndex = particionar(arreglo, low, high)', [4, 2, 5, 1, 3], [2, 1, 3, 4, 5]],
     ['Heap Sort', 'Después de extraer el máximo de [9, 5, 7, 1]', '[7, 5, 1, 9]', 'heapify(arreglo, 0, fin)', [9, 5, 7, 1], [7, 5, 1, 9]],
-    ['Binary Search', 'Primer mid buscando 7 en [1, 3, 5, 7, 9]', '5', 'mid = piso((low + high) / 2)', [1, 3, 5, 7, 9], [5, 7, 9]],
     ['Linear Search', 'Índices revisados para buscar 8 en [4, 6, 8, 2]', '0, 1, 2', 'Si arreglo[i] == objetivo', [4, 6, 8, 2], [4, 6, 8]],
     ['Stack', 'Resultado de push(1), push(2), push(3), pop()', '3', 'pop(): guardar pila[tope]; tope = tope - 1', [1, 2, 3], [1, 2]],
     ['Queue', 'Resultado de enqueue(A), enqueue(B), enqueue(C), dequeue()', 'A', 'dequeue(): guardar cola[inicio]', [1, 2, 3], [2, 3]],
