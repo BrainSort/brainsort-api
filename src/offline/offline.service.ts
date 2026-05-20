@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { getEngine } from '../simulations/engines/registry';
 import { PseudocodeLine } from '../simulations/engines/engine.interface';
 import {
   OfflineModuleDto,
@@ -22,9 +21,16 @@ export class OfflineService {
     const descargadosIds = new Set<string>(); // TODO: Implementar tracking de descargas
 
     return algoritmos.map((algoritmo) => {
-      const engine = getEngine(algoritmo.nombre);
       const pseudocode = this.getPseudocode(algoritmo.nombre);
-      const tamanoKB = this.calculateModuleSize(engine, pseudocode);
+      const tamanoKB = this.calculateModuleSize(
+        {
+          meta: {
+            nombre: algoritmo.nombre,
+            descripcion: algoritmo.descripcion,
+          },
+        },
+        pseudocode,
+      );
 
       return {
         algoritmoId: algoritmo.id,
@@ -45,7 +51,6 @@ export class OfflineService {
       throw new NotFoundException('Algoritmo no encontrado');
     }
 
-    getEngine(algoritmo.nombre);
     const pseudocode = this.getPseudocode(algoritmo.nombre);
 
     // Obtener ejercicios
@@ -68,8 +73,11 @@ export class OfflineService {
       pseudocode,
       ejercicios: ejercicios.map((ejercicio) => ({
         id: ejercicio.id,
+        tipo: ejercicio.tipo,
         pregunta: ejercicio.pregunta,
         dificultad: ejercicio.dificultad,
+        opciones: ejercicio.opciones,
+        contenido: ejercicio.contenido,
         respuestaCorrecta: ejercicio.respuestaCorrecta,
         feedbackPositivo: ejercicio.feedbackPositivo,
         feedbackNegativo: ejercicio.feedbackNegativo,
