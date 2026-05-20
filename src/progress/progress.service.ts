@@ -50,21 +50,22 @@ export class ProgressService {
       },
     });
 
-    const respuestasCorrectasUnicas = await this.prisma.respuestaEjercicio.findMany({
-      where: {
-        usuarioId,
-        correcto: true,
-        ejercicio: {
-          algoritmo: {
-            activo: true,
+    const respuestasCorrectasUnicas =
+      await this.prisma.respuestaEjercicio.findMany({
+        where: {
+          usuarioId,
+          correcto: true,
+          ejercicio: {
+            algoritmo: {
+              activo: true,
+            },
           },
         },
-      },
-      select: {
-        ejercicioId: true,
-      },
-      distinct: ['ejercicioId'],
-    });
+        select: {
+          ejercicioId: true,
+        },
+        distinct: ['ejercicioId'],
+      });
 
     const ejerciciosCorrectos = respuestasCorrectasUnicas.length;
 
