@@ -128,6 +128,34 @@ async function ensureExercise(seed: ExerciseSeed) {
   await prisma.ejercicioPrediccion.create({ data });
 }
 
+async function removeUnansweredExercises(algoritmoNombre: string, preguntas: string[]) {
+  const algoritmo = await prisma.algoritmo.findUnique({
+    where: { nombre: algoritmoNombre },
+  });
+
+  if (!algoritmo) {
+    return;
+  }
+
+  const ejercicios = await prisma.ejercicioPrediccion.findMany({
+    where: {
+      algoritmoId: algoritmo.id,
+      pregunta: { in: preguntas },
+    },
+    select: { id: true },
+  });
+
+  for (const ejercicio of ejercicios) {
+    const respuestas = await prisma.respuestaEjercicio.count({
+      where: { ejercicioId: ejercicio.id },
+    });
+
+    if (respuestas === 0) {
+      await prisma.ejercicioPrediccion.delete({ where: { id: ejercicio.id } });
+    }
+  }
+}
+
 async function main() {
   // 1. Crear administrador por defecto
   const adminPassword = await bcrypt.hash('admin123', 10);
@@ -564,6 +592,64 @@ async function main() {
       feedbackPositivo: '¡Correcto! Como 40 > 20, el nuevo high se mueve a mid - 1 (índice 2, valor 30).',
       feedbackNegativo: 'Dado que 40 es mayor que 20, el elemento debe estar a la izquierda de mid. El nuevo límite superior (high) debe actualizarse a mid - 1.',
     },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Qué condición permite seguir buscando mientras el rango aún tiene elementos?',
+      respuestaCorrecta: 'low <= high',
+      dificultad: 'Facil',
+      opciones: ['low <= high', 'low < mid', 'mid <= objetivo', 'high == n - 1'],
+      contenido: { antes: 'Mientras ', despues: ': continuar buscando' },
+      feedbackPositivo: 'Correcto: mientras low no sobrepase high todavía queda un rango válido por revisar.',
+      feedbackNegativo: 'La búsqueda continúa solo si el límite inferior no ha pasado al límite superior.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'Antes de aplicar búsqueda binaria, ¿qué propiedad debe cumplir el arreglo?',
+      respuestaCorrecta: 'estar ordenado',
+      dificultad: 'Facil',
+      opciones: ['estar ordenado', 'tener valores únicos', 'tener tamaño par', 'empezar en cero'],
+      contenido: { antes: 'El arreglo debe ', despues: ' para poder descartar mitades con seguridad.' },
+      feedbackPositivo: 'Correcto: el orden permite decidir si el objetivo está a la izquierda o a la derecha de mid.',
+      feedbackNegativo: 'Sin orden, comparar con mid no permite descartar una mitad del arreglo.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'Si el valor en mid coincide con el objetivo, ¿qué debe devolver la búsqueda?',
+      respuestaCorrecta: 'mid',
+      dificultad: 'Medio',
+      opciones: ['mid', 'low', 'high', '-1'],
+      contenido: { antes: 'Si arreglo[mid] == objetivo: devolver ', despues: '' },
+      feedbackPositivo: 'Correcto: mid es el índice donde se encontró el objetivo.',
+      feedbackNegativo: 'Cuando hay coincidencia, no se ajustan los límites; se devuelve el índice actual.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'OrdenarBarras',
+      pregunta: 'Buscamos 60 en [10, 20, 30, 40, 50, 60, 70]. Tras comparar 40 < 60, el rango queda de índice 4 a 6. Selecciona el nuevo mid.',
+      respuestaCorrecta: '5',
+      dificultad: 'Medio',
+      contenido: {
+        modoSeleccion: true,
+        inicial: [10, 20, 30, 40, 50, 60, 70],
+        pasoObjetivo: 'Nuevo rango: low=4, high=6. Calcula mid para la segunda iteración.',
+      },
+      feedbackPositivo: 'Correcto: piso((4 + 6) / 2) = 5, que apunta al valor 60.',
+      feedbackNegativo: 'Después de mover low a 4, mid se calcula con los límites nuevos, no con el rango original.',
+    },
+    {
+      algoritmo: 'Binary Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'Buscamos 35 en [10, 20, 30, 40, 50]. Después de ajustar low y high, low queda mayor que high. ¿Qué debe devolver el algoritmo?',
+      respuestaCorrecta: '-1',
+      dificultad: 'Dificil',
+      opciones: ['-1', 'low', 'high', 'mid'],
+      contenido: { antes: 'Si termina el ciclo sin encontrar el objetivo: devolver ', despues: '' },
+      feedbackPositivo: 'Correcto: cuando low > high, el rango está vacío y el objetivo no está en el arreglo.',
+      feedbackNegativo: 'Si el rango queda vacío, no hay índice válido para devolver; la señal de no encontrado es -1.',
+    },
   ];
 
   const moreExerciseSeeds: ExerciseSeed[] = [
@@ -609,6 +695,12 @@ async function main() {
   for (const seed of [...exerciseSeeds, ...moreExerciseSeeds]) {
     await ensureExercise(seed);
   }
+
+  await removeUnansweredExercises('Binary Search', [
+    '¿Cómo se calcula el índice de la mitad (mid) en la búsqueda binaria?',
+    'Si buscamos el número 8 en el arreglo ordenado [2, 4, 6, 8, 10, 12, 14], ¿cuál bloque representa el elemento mid en el primer paso?',
+    'Si el elemento en la posición mid es mayor que el objetivo, ¿cómo actualizamos el límite superior (high)?',
+  ]);
 
   // 4. Seed de insignias
   const insignias = [
