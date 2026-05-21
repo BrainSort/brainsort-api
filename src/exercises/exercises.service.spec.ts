@@ -20,6 +20,8 @@ describe('ExercisesService', () => {
     },
     respuestaEjercicio: {
       create: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -38,6 +40,8 @@ describe('ExercisesService', () => {
     }).compile();
 
     service = module.get<ExercisesService>(ExercisesService);
+    mockPrismaService.respuestaEjercicio.findFirst.mockResolvedValue(null);
+    mockPrismaService.respuestaEjercicio.count.mockResolvedValue(0);
   });
 
   afterEach(() => {
@@ -137,6 +141,9 @@ describe('ExercisesService', () => {
       expect(result.puntosGanados).toBe(10); // Facil = 10 pts
       expect(result.feedback).toBe(mockEjercicio.feedbackPositivo);
       expect(result.puntosTotales).toBe(60); // 50 + 10
+      expect(result.yaResuelto).toBe(false);
+      expect(result.intentoNumero).toBe(1);
+      expect(result.feedbackConceptual).toContain('Nuevo dominio registrado');
     });
 
     it('debe retornar correcto=false y 0 puntos con respuesta incorrecta', async () => {
@@ -160,6 +167,40 @@ describe('ExercisesService', () => {
       expect(result.puntosGanados).toBe(0);
       expect(result.feedback).toBe(mockEjercicio.feedbackNegativo);
       expect(result.puntosTotales).toBe(50); // Sin cambio
+      expect(result.mensajeProgreso).toContain(
+        'todavía no cuenta como dominio',
+      );
+    });
+
+    it('no debe otorgar XP extra ni insignias si el ejercicio ya estaba dominado', async () => {
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.respuestaEjercicio.findFirst.mockResolvedValue({
+        id: 'respuesta-previa',
+        correcto: true,
+      });
+      mockPrismaService.respuestaEjercicio.count.mockResolvedValue(2);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(3);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.correcto).toBe(true);
+      expect(result.yaResuelto).toBe(true);
+      expect(result.intentoNumero).toBe(3);
+      expect(result.puntosGanados).toBe(0);
+      expect(result.puntosTotales).toBe(50);
+      expect(result.feedback).toContain('repaso sin XP extra');
+      expect(mockBadgesService.checkAndAward).not.toHaveBeenCalled();
     });
 
     it('debe lanzar NotFoundException si el ejercicio no existe', async () => {

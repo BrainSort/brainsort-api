@@ -35,4 +35,29 @@ export class ExerciseResultDto {
 
   @ApiProperty({ description: 'Total de puntos acumulados' })
   puntosTotales: number;
+
+  @ApiProperty({
+    description: 'Indica si el ejercicio ya había sido resuelto correctamente',
+    required: false,
+  })
+  yaResuelto?: boolean;
+
+  @ApiProperty({
+    description: 'Número de intento del usuario para este ejercicio',
+    required: false,
+  })
+  intentoNumero?: number;
+
+  @ApiProperty({
+    description:
+      'Feedback educativo enfocado en el concepto del error o acierto',
+    required: false,
+  })
+  feedbackConceptual?: string;
+
+  @ApiProperty({
+    description: 'Mensaje breve sobre el progreso real de dominio',
+    required: false,
+  })
+  mensajeProgreso?: string;
 }

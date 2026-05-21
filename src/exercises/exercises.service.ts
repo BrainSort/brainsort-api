@@ -49,6 +49,23 @@ export class ExercisesService {
       answerExerciseDto.respuesta,
       ejercicio.respuestaCorrecta,
     );
+    const [respuestaCorrectaPrevia, intentosPrevios] = await Promise.all([
+      this.prisma.respuestaEjercicio.findFirst({
+        where: {
+          usuarioId,
+          ejercicioId,
+          correcto: true,
+        },
+      }),
+      this.prisma.respuestaEjercicio.count({
+        where: {
+          usuarioId,
+          ejercicioId,
+        },
+      }),
+    ]);
+    const yaResuelto = Boolean(respuestaCorrectaPrevia);
+    const intentoNumero = intentosPrevios + 1;
 
     // Obtener o crear progreso del usuario
     let progreso = await this.prisma.progresoUsuario.findUnique({
@@ -71,12 +88,29 @@ export class ExercisesService {
     let feedback: string;
 
     if (isCorrect) {
-      feedback = ejercicio.feedbackPositivo;
-      puntosGanados = this.calculatePoints(ejercicio.dificultad);
+      feedback = yaResuelto
+        ? `${ejercicio.feedbackPositivo} Ya habías dominado este ejercicio, así que cuenta como repaso sin XP extra.`
+        : ejercicio.feedbackPositivo;
+      puntosGanados = yaResuelto
+        ? 0
+        : this.calculatePoints(ejercicio.dificultad);
       progreso.puntosTotales += puntosGanados;
     } else {
       feedback = ejercicio.feedbackNegativo;
     }
+
+    const feedbackConceptual = this.buildConceptualFeedback(
+      ejercicio,
+      answerExerciseDto.respuesta,
+      isCorrect,
+      yaResuelto,
+    );
+    const mensajeProgreso = this.buildProgressMessage(
+      isCorrect,
+      yaResuelto,
+      puntosGanados,
+      intentoNumero,
+    );
 
     // Actualizar racha si es primera actividad del día
     await this.updateStreak(progreso);
@@ -118,7 +152,7 @@ export class ExercisesService {
     });
 
     // Verificar insignias post-correcto
-    if (isCorrect) {
+    if (isCorrect && !yaResuelto) {
       await this.badgesService.checkAndAward(usuarioId);
     }
 
@@ -132,6 +166,10 @@ export class ExercisesService {
       posicionRanking,
       nivelActual: progreso.nivelActual,
       puntosTotales: progreso.puntosTotales,
+      yaResuelto,
+      intentoNumero,
+      feedbackConceptual,
+      mensajeProgreso,
     };
   }
 
@@ -162,6 +200,89 @@ export class ExercisesService {
     } catch {
       return { ok: false };
     }
+  }
+
+  private buildConceptualFeedback(
+    ejercicio: {
+      tipo: string;
+      respuestaCorrecta: string;
+      feedbackNegativo: string;
+    },
+    respuestaUsuario: string,
+    isCorrect: boolean,
+    yaResuelto: boolean,
+  ): string {
+    if (isCorrect) {
+      return yaResuelto
+        ? 'Este intento refuerza memoria y fluidez, pero el progreso de dominio ya estaba registrado.'
+        : 'Nuevo dominio registrado: acertaste el paso objetivo y el ejercicio ya cuenta para tu progreso real.';
+    }
+
+    if (ejercicio.tipo === 'OrdenarBarras') {
+      const diferencia = this.describeArrayDifference(
+        respuestaUsuario,
+        ejercicio.respuestaCorrecta,
+      );
+      return diferencia
+        ? `Compara el estado de las barras antes de avanzar: ${diferencia}`
+        : 'Revisa qué índice o intercambio cambia en este paso; no intentes ordenar todo, predice solo el siguiente estado.';
+    }
+
+    if (ejercicio.tipo === 'CompletarPseudocodigo') {
+      return 'Vuelve a leer la condición del paso: la opción correcta debe explicar exactamente cuándo ocurre la acción.';
+    }
+
+    return 'Contrasta tu predicción con la regla del algoritmo y corrige el siguiente paso, no solo el resultado final.';
+  }
+
+  private buildProgressMessage(
+    isCorrect: boolean,
+    yaResuelto: boolean,
+    puntosGanados: number,
+    intentoNumero: number,
+  ): string {
+    if (!isCorrect) {
+      return `Intento ${intentoNumero}: todavía no cuenta como dominio. Corrige y vuelve a comprobar.`;
+    }
+
+    if (yaResuelto) {
+      return `Intento ${intentoNumero}: repaso completado sin XP extra para evitar farmeo.`;
+    }
+
+    return `Dominio confirmado en el intento ${intentoNumero}. Ganaste ${puntosGanados} XP por primer acierto.`;
+  }
+
+  private describeArrayDifference(
+    respuestaUsuario: string,
+    respuestaCorrecta: string,
+  ): string | null {
+    const parsedUser = this.tryParseJson(respuestaUsuario);
+    const parsedCorrect = this.tryParseJson(respuestaCorrecta);
+
+    if (
+      !parsedUser.ok ||
+      !parsedCorrect.ok ||
+      !Array.isArray(parsedUser.value) ||
+      !Array.isArray(parsedCorrect.value)
+    ) {
+      return null;
+    }
+
+    const correct = parsedCorrect.value;
+    const user = parsedUser.value;
+    const firstMismatch = correct.findIndex(
+      (value, index) => user[index] !== value,
+    );
+
+    if (firstMismatch === -1 && user.length === correct.length) {
+      return null;
+    }
+
+    if (firstMismatch === -1) {
+      return `tu respuesta tiene ${user.length} valores y se esperaban ${correct.length}.`;
+    }
+
+    return `en la posición ${firstMismatch + 1} pusiste ${String(user[firstMismatch])}, pero ese paso espera ${String(correct[firstMismatch])}.`;
   }
 
   private calculatePoints(dificultad: string): number {
