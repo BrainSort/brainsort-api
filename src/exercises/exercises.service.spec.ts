@@ -21,6 +21,7 @@ describe('ExercisesService', () => {
     respuestaEjercicio: {
       create: jest.fn(),
       findFirst: jest.fn(),
+      findMany: jest.fn(),
       count: jest.fn(),
     },
   };
@@ -41,6 +42,7 @@ describe('ExercisesService', () => {
 
     service = module.get<ExercisesService>(ExercisesService);
     mockPrismaService.respuestaEjercicio.findFirst.mockResolvedValue(null);
+    mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([]);
     mockPrismaService.respuestaEjercicio.count.mockResolvedValue(0);
   });
 
@@ -94,6 +96,78 @@ describe('ExercisesService', () => {
 
       expect(result).toHaveLength(0);
       expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('debe priorizar ejercicios con más errores y enfriar los dominados recientemente', async () => {
+      const now = new Date('2026-05-20T12:00:00Z');
+      jest.useFakeTimers().setSystemTime(now);
+      const ejercicios = [
+        {
+          id: 'dominado-reciente',
+          pregunta: 'Dominado',
+          dificultad: 'Facil',
+          createdAt: new Date('2026-05-01T00:00:00Z'),
+          algoritmoId: 'algo-1',
+          tipo: 'OrdenarBarras',
+          opciones: null,
+          contenido: null,
+          algoritmo: { id: 'algo-1', nombre: 'Bubble Sort' },
+        },
+        {
+          id: 'mas-fallado',
+          pregunta: 'Fallado',
+          dificultad: 'Medio',
+          createdAt: new Date('2026-05-02T00:00:00Z'),
+          algoritmoId: 'algo-1',
+          tipo: 'OrdenarBarras',
+          opciones: null,
+          contenido: null,
+          algoritmo: { id: 'algo-1', nombre: 'Bubble Sort' },
+        },
+        {
+          id: 'nuevo',
+          pregunta: 'Nuevo',
+          dificultad: 'Facil',
+          createdAt: new Date('2026-05-03T00:00:00Z'),
+          algoritmoId: 'algo-1',
+          tipo: 'CompletarPseudocodigo',
+          opciones: null,
+          contenido: null,
+          algoritmo: { id: 'algo-1', nombre: 'Bubble Sort' },
+        },
+      ];
+      mockPrismaService.ejercicioPrediccion.findMany.mockResolvedValue(
+        ejercicios,
+      );
+      mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([
+        {
+          ejercicioId: 'dominado-reciente',
+          correcto: true,
+          fechaRespuesta: new Date('2026-05-19T12:00:00Z'),
+        },
+        {
+          ejercicioId: 'dominado-reciente',
+          correcto: true,
+          fechaRespuesta: new Date('2026-05-18T12:00:00Z'),
+        },
+        {
+          ejercicioId: 'mas-fallado',
+          correcto: false,
+          fechaRespuesta: new Date('2026-05-19T12:00:00Z'),
+        },
+        {
+          ejercicioId: 'mas-fallado',
+          correcto: false,
+          fechaRespuesta: new Date('2026-05-18T12:00:00Z'),
+        },
+      ]);
+
+      const result = await service.getExercisesByAlgorithm('algo-1', 'user-1');
+
+      expect(result.map((ejercicio) => ejercicio.id)).toEqual([
+        'mas-fallado',
+        'nuevo',
+      ]);
     });
   });
 
@@ -198,7 +272,8 @@ describe('ExercisesService', () => {
       expect(result.puntosGanados).toBe(0);
       expect(result.puntosTotales).toBe(50);
       expect(result.feedback).toBe(mockEjercicio.feedbackPositivo);
-      expect(result.feedbackConceptual).toContain('Buen repaso');
+      expect(result.feedbackConceptual).toBeUndefined();
+      expect(result.mensajeProgreso).toBeUndefined();
       expect(mockBadgesService.checkAndAward).not.toHaveBeenCalled();
     });
 

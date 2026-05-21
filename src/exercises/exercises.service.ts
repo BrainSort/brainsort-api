@@ -6,18 +6,24 @@ import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
 export class ExercisesService {
+  private readonly masteredCooldownDays = 14;
+
   constructor(
     private prisma: PrismaService,
     private badgesService: BadgesService,
   ) {}
 
-  async getExercisesByAlgorithm(algoritmoId: string) {
+  async getExercisesByAlgorithm(algoritmoId: string, usuarioId?: string) {
     const ejercicios = await this.prisma.ejercicioPrediccion.findMany({
       where: { algoritmoId },
       include: { algoritmo: true },
     });
 
-    return ejercicios.map((ejercicio) => ({
+    const ejerciciosOrdenados = usuarioId
+      ? await this.prioritizeExercises(ejercicios, usuarioId)
+      : ejercicios;
+
+    return ejerciciosOrdenados.map((ejercicio) => ({
       id: ejercicio.id,
       algoritmoId: ejercicio.algoritmoId,
       tipo: ejercicio.tipo,
@@ -171,6 +177,111 @@ export class ExercisesService {
     };
   }
 
+  private async prioritizeExercises<
+    T extends {
+      id: string;
+      createdAt: Date;
+      dificultad: string;
+    },
+  >(ejercicios: T[], usuarioId: string): Promise<T[]> {
+    if (ejercicios.length === 0) {
+      return ejercicios;
+    }
+
+    const respuestas = await this.prisma.respuestaEjercicio.findMany({
+      where: {
+        usuarioId,
+        ejercicioId: { in: ejercicios.map((ejercicio) => ejercicio.id) },
+      },
+      orderBy: { fechaRespuesta: 'desc' },
+    });
+
+    const statsPorEjercicio = new Map<
+      string,
+      {
+        correctas: number;
+        incorrectas: number;
+        ultimoIntento?: Date;
+        ultimoError?: Date;
+        ultimoAcierto?: Date;
+      }
+    >();
+
+    for (const respuesta of respuestas) {
+      const stats = statsPorEjercicio.get(respuesta.ejercicioId) ?? {
+        correctas: 0,
+        incorrectas: 0,
+      };
+
+      if (!stats.ultimoIntento) {
+        stats.ultimoIntento = respuesta.fechaRespuesta;
+      }
+
+      if (respuesta.correcto) {
+        stats.correctas += 1;
+        stats.ultimoAcierto ??= respuesta.fechaRespuesta;
+      } else {
+        stats.incorrectas += 1;
+        stats.ultimoError ??= respuesta.fechaRespuesta;
+      }
+
+      statsPorEjercicio.set(respuesta.ejercicioId, stats);
+    }
+
+    const now = new Date();
+    const candidates = ejercicios.map((ejercicio, index) => {
+      const stats = statsPorEjercicio.get(ejercicio.id) ?? {
+        correctas: 0,
+        incorrectas: 0,
+      };
+      const mastered = stats.correctas >= 2 && stats.incorrectas === 0;
+      const recentlyMastered =
+        mastered &&
+        stats.ultimoAcierto &&
+        this.getDaysDifference(stats.ultimoAcierto, now) <
+          this.masteredCooldownDays;
+
+      return {
+        ejercicio,
+        index,
+        stats,
+        mastered,
+        recentlyMastered,
+        priority: this.calculateExercisePriority(stats),
+      };
+    });
+
+    const activeCandidates = candidates.filter(
+      (candidate) => !candidate.recentlyMastered,
+    );
+    const ordered = activeCandidates.length > 0 ? activeCandidates : candidates;
+
+    return ordered
+      .sort((a, b) => {
+        if (b.priority !== a.priority) return b.priority - a.priority;
+        return a.index - b.index;
+      })
+      .map((candidate) => candidate.ejercicio);
+  }
+
+  private calculateExercisePriority(stats: {
+    correctas: number;
+    incorrectas: number;
+    ultimoIntento?: Date;
+    ultimoError?: Date;
+  }): number {
+    if (stats.incorrectas === 0 && stats.correctas === 0) {
+      return 80;
+    }
+
+    const errorWeight = stats.incorrectas * 30;
+    const unresolvedPenalty = stats.correctas === 0 ? 20 : 0;
+    const masteryPenalty = stats.correctas * 12;
+    const recentErrorBoost = stats.ultimoError ? 10 : 0;
+
+    return errorWeight + unresolvedPenalty + recentErrorBoost - masteryPenalty;
+  }
+
   private compareAnswers(userAnswer: string, correctAnswer: string): boolean {
     const parsedUser = this.tryParseJson(userAnswer);
     const parsedCorrect = this.tryParseJson(correctAnswer);
@@ -209,10 +320,10 @@ export class ExercisesService {
     respuestaUsuario: string,
     isCorrect: boolean,
     yaResuelto: boolean,
-  ): string {
+  ): string | undefined {
     if (isCorrect) {
       return yaResuelto
-        ? 'Buen repaso: resolviste correctamente el ejercicio otra vez.'
+        ? undefined
         : 'Bien hecho: identificaste correctamente el paso clave del algoritmo.';
     }
 
@@ -238,13 +349,13 @@ export class ExercisesService {
     yaResuelto: boolean,
     puntosGanados: number,
     intentoNumero: number,
-  ): string {
+  ): string | undefined {
     if (!isCorrect) {
       return `Intento ${intentoNumero}: ajusta tu respuesta y vuelve a comprobar.`;
     }
 
     if (yaResuelto) {
-      return `Intento ${intentoNumero}: buen repaso.`;
+      return undefined;
     }
 
     return `Intento ${intentoNumero}: +${puntosGanados} XP.`;

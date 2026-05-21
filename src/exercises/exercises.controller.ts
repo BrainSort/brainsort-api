@@ -31,8 +31,11 @@ export class ExercisesController {
       'Retorna todos los ejercicios de predicción asociados a un algoritmo',
   })
   @ApiParam({ name: 'algoId', description: 'ID del algoritmo' })
-  async getExercisesByAlgorithm(@Param('algoId') algoId: string) {
-    return this.exercisesService.getExercisesByAlgorithm(algoId);
+  async getExercisesByAlgorithm(
+    @Param('algoId') algoId: string,
+    @Request() req,
+  ) {
+    return this.exercisesService.getExercisesByAlgorithm(algoId, req.user.id);
   }
 
   @Post(':id/responder')
