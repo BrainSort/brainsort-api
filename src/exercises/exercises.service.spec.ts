@@ -143,7 +143,7 @@ describe('ExercisesService', () => {
       expect(result.puntosTotales).toBe(60); // 50 + 10
       expect(result.yaResuelto).toBe(false);
       expect(result.intentoNumero).toBe(1);
-      expect(result.feedbackConceptual).toContain('Nuevo dominio registrado');
+      expect(result.feedbackConceptual).toContain('paso clave');
     });
 
     it('debe retornar correcto=false y 0 puntos con respuesta incorrecta', async () => {
@@ -167,9 +167,7 @@ describe('ExercisesService', () => {
       expect(result.puntosGanados).toBe(0);
       expect(result.feedback).toBe(mockEjercicio.feedbackNegativo);
       expect(result.puntosTotales).toBe(50); // Sin cambio
-      expect(result.mensajeProgreso).toContain(
-        'todavía no cuenta como dominio',
-      );
+      expect(result.mensajeProgreso).toContain('ajusta tu respuesta');
     });
 
     it('no debe otorgar XP extra ni insignias si el ejercicio ya estaba dominado', async () => {
@@ -199,7 +197,8 @@ describe('ExercisesService', () => {
       expect(result.intentoNumero).toBe(3);
       expect(result.puntosGanados).toBe(0);
       expect(result.puntosTotales).toBe(50);
-      expect(result.feedback).toContain('repaso sin XP extra');
+      expect(result.feedback).toBe(mockEjercicio.feedbackPositivo);
+      expect(result.feedbackConceptual).toContain('Buen repaso');
       expect(mockBadgesService.checkAndAward).not.toHaveBeenCalled();
     });
 

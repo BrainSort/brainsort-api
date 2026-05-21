@@ -88,9 +88,7 @@ export class ExercisesService {
     let feedback: string;
 
     if (isCorrect) {
-      feedback = yaResuelto
-        ? `${ejercicio.feedbackPositivo} Ya habías dominado este ejercicio, así que cuenta como repaso sin XP extra.`
-        : ejercicio.feedbackPositivo;
+      feedback = ejercicio.feedbackPositivo;
       puntosGanados = yaResuelto
         ? 0
         : this.calculatePoints(ejercicio.dificultad);
@@ -214,8 +212,8 @@ export class ExercisesService {
   ): string {
     if (isCorrect) {
       return yaResuelto
-        ? 'Este intento refuerza memoria y fluidez, pero el progreso de dominio ya estaba registrado.'
-        : 'Nuevo dominio registrado: acertaste el paso objetivo y el ejercicio ya cuenta para tu progreso real.';
+        ? 'Buen repaso: resolviste correctamente el ejercicio otra vez.'
+        : 'Bien hecho: identificaste correctamente el paso clave del algoritmo.';
     }
 
     if (ejercicio.tipo === 'OrdenarBarras') {
@@ -242,14 +240,14 @@ export class ExercisesService {
     intentoNumero: number,
   ): string {
     if (!isCorrect) {
-      return `Intento ${intentoNumero}: todavía no cuenta como dominio. Corrige y vuelve a comprobar.`;
+      return `Intento ${intentoNumero}: ajusta tu respuesta y vuelve a comprobar.`;
     }
 
     if (yaResuelto) {
-      return `Intento ${intentoNumero}: repaso completado sin XP extra para evitar farmeo.`;
+      return `Intento ${intentoNumero}: buen repaso.`;
     }
 
-    return `Dominio confirmado en el intento ${intentoNumero}. Ganaste ${puntosGanados} XP por primer acierto.`;
+    return `Intento ${intentoNumero}: +${puntosGanados} XP.`;
   }
 
   private describeArrayDifference(
