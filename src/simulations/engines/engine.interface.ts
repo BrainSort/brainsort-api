@@ -25,10 +25,32 @@ export type TipoOperacion =
   | 'final'
   | 'idle';
 
+export interface SimulationMarker {
+  index: number;
+  label: string;
+  role: string;
+  color: string;
+}
+
+export interface SimulationStepContext {
+  waitingIndices?: number[];
+}
+
+export interface SimulationTreeNode {
+  index: number;
+  value: number | null;
+  level: number;
+  position: number;
+  label?: string;
+}
+
 export interface SimulationStep {
   numeroPaso: number;
   tipoOperacion: TipoOperacion;
   indicesActivos: number[]; // Índices en el arreglo que están siendo modificados o comparados
   estadoArray: number[]; // Clon del estado del arreglo en este paso
   lineaPseudocodigo: number; // Índice base 1 correspondiente a PseudocodeLine
+  contexto?: SimulationStepContext;
+  marcadores?: SimulationMarker[];
+  nodosArbol?: SimulationTreeNode[];
 }

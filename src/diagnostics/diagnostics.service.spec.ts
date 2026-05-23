@@ -101,11 +101,11 @@ describe('DiagnosticsService', () => {
       expect(mockPrismaService.rutaAprendizaje.upsert).toHaveBeenCalledWith({
         where: { usuarioId: 'user-1' },
         update: {
-          algoritmosId: ['algo-bubble', 'algo-insertion', 'algo-selection'],
+          algoritmosId: ['algo-selection', 'algo-bubble', 'algo-insertion'],
         },
         create: {
           usuarioId: 'user-1',
-          algoritmosId: ['algo-bubble', 'algo-insertion', 'algo-selection'],
+          algoritmosId: ['algo-selection', 'algo-bubble', 'algo-insertion'],
         },
       });
     });

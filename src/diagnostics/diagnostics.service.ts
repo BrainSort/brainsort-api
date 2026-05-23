@@ -55,50 +55,81 @@ export class DiagnosticsService {
       select: { id: true, nombre: true },
     });
 
-    // En un caso real, esto usaría tags y complejidad.
-    // Aquí hacemos un enrutamiento dummy basado en el puntaje.
-    const bubble = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('bubble'),
-    )?.id;
-    const selection = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('selection'),
-    )?.id;
-    const insertion = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('insertion'),
-    )?.id;
-    const merge = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('merge'),
-    )?.id;
-    const stack = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('stack'),
-    )?.id;
-    const queue = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('queue'),
-    )?.id;
-    const linkedList = algoritmos.find((a) =>
-      a.nombre.toLowerCase().includes('linked'),
-    )?.id;
+    const getAlgoId = (nameQuery: string) => {
+      return algoritmos.find((a) =>
+        a.nombre.toLowerCase().includes(nameQuery.toLowerCase()),
+      )?.id;
+    };
+
+    const linearSearch = getAlgoId('linear search');
+    const binarySearch = getAlgoId('binary search');
+    const stack = getAlgoId('stack');
+    const queue = getAlgoId('queue');
+    const linkedList = getAlgoId('linked list');
+    const deque = getAlgoId('deque');
+    const bubble = getAlgoId('bubble sort');
+    const insertion = getAlgoId('insertion sort');
+    const selection = getAlgoId('selection sort');
+    const merge = getAlgoId('merge sort');
+    const quick = getAlgoId('quick sort');
+    const priorityQueue = getAlgoId('priority queue');
+    const heapSort = getAlgoId('heap sort');
+    const segmentTree = getAlgoId('segment tree');
 
     let algoritmosId: string[] = [];
-    if (puntaje < 50) {
+    if (puntaje < 40) {
+      // Principiante
       algoritmosId = [
+        linearSearch,
         stack,
         queue,
         bubble,
         insertion,
+        binarySearch,
         linkedList,
+        deque,
         selection,
         merge,
+        quick,
+        priorityQueue,
+        heapSort,
+        segmentTree,
+      ].filter((id): id is string => !!id);
+    } else if (puntaje <= 75) {
+      // Intermedio
+      algoritmosId = [
+        binarySearch,
+        linkedList,
+        deque,
+        selection,
+        merge,
+        quick,
+        priorityQueue,
+        heapSort,
+        segmentTree,
+        linearSearch,
+        stack,
+        queue,
+        bubble,
+        insertion,
       ].filter((id): id is string => !!id);
     } else {
+      // Avanzado
       algoritmosId = [
-        bubble,
-        insertion,
+        merge,
+        quick,
+        priorityQueue,
+        heapSort,
+        segmentTree,
+        binarySearch,
+        linkedList,
+        deque,
+        selection,
+        linearSearch,
         stack,
         queue,
-        selection,
-        linkedList,
-        merge,
+        bubble,
+        insertion,
       ].filter((id): id is string => !!id);
     }
 

@@ -13,6 +13,9 @@ describe('LearningPathService', () => {
     algoritmo: {
       findMany: jest.fn(),
     },
+    resultadoDiagnostico: {
+      findUnique: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -59,6 +62,8 @@ describe('LearningPathService', () => {
         },
       ]);
 
+      mockPrismaService.resultadoDiagnostico.findUnique.mockResolvedValue(null);
+
       const result = await service.getRutaUsuario('user-1');
 
       expect(result).toEqual({
@@ -68,6 +73,7 @@ describe('LearningPathService', () => {
           expect.objectContaining({ id: 'algo-2' }),
           expect.objectContaining({ id: 'algo-1' }),
         ],
+        diagnostico: null,
       });
       expect(mockPrismaService.algoritmo.findMany).toHaveBeenCalledWith({
         where: { id: { in: ['algo-2', 'algo-1'] } },

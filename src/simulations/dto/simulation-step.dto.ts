@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TipoOperacion } from '../../simulations/engines/engine.interface';
+import {
+  TipoOperacion,
+  SimulationMarker,
+  SimulationTreeNode,
+} from '../../simulations/engines/engine.interface';
 
 export class SimulationStepDto {
   @ApiProperty({ description: 'Número del paso en la simulación' })
@@ -24,4 +28,17 @@ export class SimulationStepDto {
     description: 'Línea de pseudocódigo correspondiente (base 1)',
   })
   lineaPseudocodigo: number;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Marcadores visuales enriquecidos desde la configuración del algoritmo',
+  })
+  marcadores?: SimulationMarker[];
+
+  @ApiProperty({
+    required: false,
+    description: 'Nodos explícitos para visualizaciones de árbol',
+  })
+  nodosArbol?: SimulationTreeNode[];
 }

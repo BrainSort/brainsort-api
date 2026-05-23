@@ -38,6 +38,17 @@ export class ProgressResponseDto {
 
   @ApiProperty({ description: 'Número total de ejercicios respondidos' })
   ejerciciosTotales: number;
+
+  @ApiProperty({
+    type: [Object],
+    description: 'Desglose del progreso de resolución por algoritmo',
+    required: false,
+  })
+  algoritmosProgreso?: Array<{
+    algoritmoId: string;
+    ejerciciosCorrectos: number;
+    ejerciciosTotales: number;
+  }>;
 }
 
 export class RankingResponseDto {

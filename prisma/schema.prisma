@@ -74,6 +74,7 @@ model Algoritmo {
   categoria         CategoriaAlgoritmo
   tags              String[]
   pseudocodigo      Json?     // Array de {numero: number, codigo: string}
+  visualizacion     Json?     // Config de marcadores visuales por línea/rol
   activo            Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -89,6 +90,7 @@ enum CategoriaAlgoritmo {
   Ordenamiento
   Busqueda
   EstructurasLineales
+  EstructurasArboles
 }
 
 // ═══════════════════════════════════════
@@ -99,9 +101,12 @@ enum CategoriaAlgoritmo {
 // ═══════════════════════════════════════
 model EjercicioPrediccion {
   id                String   @id @default(uuid())
+  tipo              TipoEjercicio @default(PrediccionTexto)
   pregunta          String   @db.Text
   respuestaCorrecta String
   dificultad        DificultadEjercicio
+  opciones          Json?
+  contenido         Json?
   feedbackPositivo  String   @db.Text
   feedbackNegativo  String   @db.Text
   createdAt         DateTime @default(now())
@@ -118,6 +123,12 @@ enum DificultadEjercicio {
   Facil
   Medio
   Dificil
+}
+
+enum TipoEjercicio {
+  PrediccionTexto
+  CompletarPseudocodigo
+  OrdenarBarras
 }
 
 // ═══════════════════════════════════════

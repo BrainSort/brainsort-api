@@ -19,6 +19,7 @@ describe('ProgressService', () => {
     },
     respuestaEjercicio: {
       count: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     usuario: {
       findUnique: jest.fn(),
@@ -31,6 +32,10 @@ describe('ProgressService', () => {
       create: jest.fn(),
     },
     algoritmo: {
+      count: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    ejercicioPrediccion: {
       count: jest.fn(),
     },
   };
@@ -85,7 +90,8 @@ describe('ProgressService', () => {
         mockProgress,
       );
       mockPrismaService.sesionSimulacion.count.mockResolvedValue(5);
-      mockPrismaService.respuestaEjercicio.count.mockResolvedValue(10);
+      mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([]);
+      mockPrismaService.ejercicioPrediccion.count.mockResolvedValue(10);
 
       const result = await service.getUserProgress('user1');
 

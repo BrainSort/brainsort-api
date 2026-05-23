@@ -42,18 +42,32 @@ export class ProgressService {
       },
     });
 
-    const ejerciciosCorrectos = await this.prisma.respuestaEjercicio.count({
+    const ejerciciosTotales = await this.prisma.ejercicioPrediccion.count({
       where: {
-        usuarioId,
-        correcto: true,
+        algoritmo: {
+          activo: true,
+        },
       },
     });
 
-    const ejerciciosTotales = await this.prisma.respuestaEjercicio.count({
-      where: {
-        usuarioId,
-      },
-    });
+    const respuestasCorrectasUnicas =
+      await this.prisma.respuestaEjercicio.findMany({
+        where: {
+          usuarioId,
+          correcto: true,
+          ejercicio: {
+            algoritmo: {
+              activo: true,
+            },
+          },
+        },
+        select: {
+          ejercicioId: true,
+        },
+        distinct: ['ejercicioId'],
+      });
+
+    const ejerciciosCorrectos = respuestasCorrectasUnicas.length;
 
     // Formatear insignias
     const insignias = progreso.insignias.map((ui) => ({
@@ -67,6 +81,43 @@ export class ProgressService {
     // Recalcular ranking
     const posicionRanking = await this.calculateRanking(progreso.puntosTotales);
 
+    // Obtener desglose de progreso por algoritmo
+    const algoritmos = await this.prisma.algoritmo.findMany({
+      where: { activo: true },
+      include: {
+        ejercicios: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    const respuestasCorrectas = await this.prisma.respuestaEjercicio.findMany({
+      where: {
+        usuarioId,
+        correcto: true,
+      },
+      select: {
+        ejercicioId: true,
+      },
+    });
+
+    const correctIds = new Set(respuestasCorrectas.map((r) => r.ejercicioId));
+
+    const algoritmosProgreso = algoritmos.map((algo) => {
+      const ejerciciosTotales = algo.ejercicios.length;
+      const ejerciciosCorrectos = algo.ejercicios.filter((ej) =>
+        correctIds.has(ej.id),
+      ).length;
+
+      return {
+        algoritmoId: algo.id,
+        ejerciciosCorrectos,
+        ejerciciosTotales,
+      };
+    });
+
     return {
       puntosTotales: progreso.puntosTotales,
       nivelActual: progreso.nivelActual,
@@ -77,6 +128,7 @@ export class ProgressService {
       simulacionesCompletadas,
       ejerciciosCorrectos,
       ejerciciosTotales,
+      algoritmosProgreso,
     };
   }
 
