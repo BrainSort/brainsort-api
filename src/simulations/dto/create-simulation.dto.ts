@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsEnum,
   IsInt,
+  IsOptional,
   Min,
   Max,
   ArrayMinSize,
@@ -58,4 +59,15 @@ export class CreateSimulationDto {
   @ValidateNested()
   @Type(() => ConjuntoDeDatosDto)
   conjuntoDeDatos: ConjuntoDeDatosDto;
+
+  @ApiProperty({
+    required: false,
+    description: 'Valor objetivo para algoritmos de búsqueda (0-999)',
+    example: 8,
+  })
+  @IsOptional()
+  @IsInt({ message: 'El objetivo debe ser un número entero' })
+  @Min(0, { message: 'El objetivo debe ser mayor o igual a 0' })
+  @Max(999, { message: 'El objetivo no puede ser mayor a 999' })
+  objetivo?: number;
 }
