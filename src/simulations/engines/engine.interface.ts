@@ -6,7 +6,7 @@ export interface AlgorithmDefinition {
     complejidadEspacio: string;
     categoria: string;
   };
-  execute(data: number[]): SimulationStep[];
+  execute(data: number[], target?: number): SimulationStep[];
 }
 
 // Tipo para el pseudocódigo almacenado en la base de datos
