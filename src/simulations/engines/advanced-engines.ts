@@ -338,63 +338,7 @@ export const HeapSort: AlgorithmDefinition = {
   },
 };
 
-export const LinearSearch: AlgorithmDefinition = {
-  meta: {
-    nombre: 'Linear Search',
-    descripcion: 'Revisa cada elemento hasta encontrar el objetivo.',
-    complejidadTiempo: 'O(n)',
-    complejidadEspacio: 'O(1)',
-    categoria: 'Busqueda',
-  },
-  execute(data: number[]): SimulationStep[] {
-    const target = data[Math.floor(data.length / 2)] ?? data[0];
-    const steps: SimulationStep[] = [];
-    let step = 1;
-    for (let i = 0; i < data.length; i++) {
-      steps.push(createStep(step++, 'comparacion', [i], data, 2));
-      if (data[i] === target) {
-        steps.push(createStep(step++, 'final', [i], data, 3));
-        return steps;
-      }
-    }
-    steps.push(createStep(step++, 'final', [], data, 4));
-    return steps;
-  },
-};
-
-export const BinarySearch: AlgorithmDefinition = {
-  meta: {
-    nombre: 'Binary Search',
-    descripcion: 'Descarta mitades de un arreglo ordenado.',
-    complejidadTiempo: 'O(log n)',
-    complejidadEspacio: 'O(1)',
-    categoria: 'Busqueda',
-  },
-  execute(data: number[]): SimulationStep[] {
-    const array = [...data].sort((a, b) => a - b);
-    const target = array[Math.floor(array.length * 0.65)] ?? array[0];
-    const steps: SimulationStep[] = [];
-    let step = 1;
-    let low = 0;
-    let high = array.length - 1;
-
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      steps.push(createStep(step++, 'comparacion', [low, mid, high], array, 3));
-      if (array[mid] === target) {
-        steps.push(createStep(step++, 'final', [mid], array, 4));
-        return steps;
-      }
-      if (array[mid] < target) low = mid + 1;
-      else high = mid - 1;
-      steps.push(
-        createStep(step++, 'insercion', [], array, array[mid] < target ? 5 : 6),
-      );
-    }
-    steps.push(createStep(step++, 'final', [], array, 6));
-    return steps;
-  },
-};
+export { LinearSearch, BinarySearch } from './search';
 
 export const Deque: AlgorithmDefinition = {
   meta: {

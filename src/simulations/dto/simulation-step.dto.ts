@@ -41,4 +41,10 @@ export class SimulationStepDto {
     description: 'Nodos explícitos para visualizaciones de árbol',
   })
   nodosArbol?: SimulationTreeNode[];
+
+  @ApiProperty({
+    required: false,
+    description: 'Contexto estructurado del paso (punteros, límites, comparaciones, etc.)',
+  })
+  contexto?: any;
 }

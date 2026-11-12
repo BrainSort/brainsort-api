@@ -1,15 +1,18 @@
-import { AlgorithmDefinition, SimulationStep } from './engine.interface';
+import {
+  AlgorithmDefinition,
+  EngineOptions,
+  SimulationStep,
+} from './engine.interface';
 import { BubbleSort } from './bubble-sort.engine';
 import { SelectionSort } from './selection-sort.engine';
 import { InsertionSort } from './insertion-sort.engine';
 import { Stack } from './stack.engine';
 import { Queue } from './queue.engine';
 import { LinkedList } from './linked-list.engine';
+import { BinarySearch, LinearSearch } from './search';
 import {
-  BinarySearch,
   Deque,
   HeapSort,
-  LinearSearch,
   MergeSort,
   PriorityQueue,
   QuickSort,
@@ -50,6 +53,7 @@ export function getEngine(nombre: string): AlgorithmDefinition {
 export async function executeWithTimeout(
   nombre: string,
   data: number[],
+  options?: EngineOptions,
 ): Promise<SimulationStep[]> {
   const engine = getEngine(nombre);
 
@@ -59,7 +63,7 @@ export async function executeWithTimeout(
     }, 10000); // 10 segundos
 
     try {
-      const result = engine.execute(data);
+      const result = engine.execute(data, options);
       clearTimeout(timeout);
       resolve(result);
     } catch (error) {

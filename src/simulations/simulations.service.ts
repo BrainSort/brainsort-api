@@ -61,7 +61,7 @@ export class SimulationsService {
     totalPasos: number;
     pasos: SimulationStepDto[];
   }> {
-    const { algoritmoId, conjuntoDeDatos } = createSimulationDto;
+    const { algoritmoId, conjuntoDeDatos, objetivo } = createSimulationDto;
 
     // 1. Validar que el algoritmo existe y obtener pseudocódigo
     const algoritmo = await this.prisma.algoritmo.findUnique({
@@ -79,12 +79,17 @@ export class SimulationsService {
     let data = conjuntoDeDatos.valores;
     if (conjuntoDeDatos.tipoOrigen === 'Predeterminado') {
       data = this.generateRandomArray();
+      if (algoritmo.nombre === 'Binary Search') {
+        data.sort((a, b) => a - b);
+      }
     }
 
-    // 4. Ejecutar el engine con timeout
+    // 4. Ejecutar el engine con timeout y opciones
     let steps;
     try {
-      steps = await executeWithTimeout(algoritmo.nombre, data);
+      steps = await (objetivo !== undefined
+        ? executeWithTimeout(algoritmo.nombre, data, { objetivo })
+        : executeWithTimeout(algoritmo.nombre, data));
     } catch (error) {
       throw new BadRequestException(
         error.message || 'Error al ejecutar la simulación',
@@ -120,6 +125,7 @@ export class SimulationsService {
         indicesActivos: step.indicesActivos,
         estadoArray: step.estadoArray,
         lineaPseudocodigo: step.lineaPseudocodigo,
+        contexto: step.contexto,
         marcadores: this.buildMarkers(
           step,
           algoritmo.visualizacion as VisualizationConfig | null,
@@ -158,6 +164,7 @@ export class SimulationsService {
     const markers: SimulationMarker[] = [...(step.marcadores ?? [])];
 
     step.indicesActivos.forEach((index, position) => {
+      if (markers.some((marker) => marker.index === index)) return;
       markers.push({
         index,
         label: lineLabels[position] ?? `v${position + 1}`,
