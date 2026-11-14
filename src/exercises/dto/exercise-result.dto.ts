@@ -1,4 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { BadgeResponseDto } from '../../badges/dto/badge-response.dto';
 
 export class ExerciseResultDto {
   @ApiProperty({ description: 'Indica si la respuesta fue correcta' })
@@ -35,4 +36,10 @@ export class ExerciseResultDto {
 
   @ApiProperty({ description: 'Total de puntos acumulados' })
   puntosTotales: number;
+
+  @ApiPropertyOptional({
+    description: 'Insignias recién desbloqueadas tras completar el ejercicio',
+    type: [BadgeResponseDto],
+  })
+  nuevasInsignias?: BadgeResponseDto[];
 }

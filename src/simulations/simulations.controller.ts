@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SimulationsService } from './simulations.service';
@@ -27,5 +35,23 @@ export class SimulationsController {
       usuarioId,
     );
     return data;
+  }
+
+  @Patch(':id/progreso')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Actualizar progreso de una sesión de simulación',
+    description:
+      'Actualiza los pasos completados de una sesión y evalúa el desbloqueo de insignias al completarla',
+  })
+  async updateSessionProgress(
+    @Param('id') sesionId: string,
+    @Body() body: { pasosCompletados: number },
+  ) {
+    return this.simulationsService.updateSessionProgress(
+      sesionId,
+      Number(body?.pasosCompletados ?? 0),
+    );
   }
 }

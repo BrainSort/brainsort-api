@@ -612,10 +612,34 @@ async function main() {
 
   // 4. Seed de insignias
   const insignias = [
-    { nombre: 'Primer Paso', descripcion: 'Completaste tu primera simulación', imagen: '/badges/first-step.svg', criterioDesbloqueo: 'Completar 1 simulación' },
-    { nombre: 'Explorador', descripcion: 'Visualizaste 3 algoritmos diferentes', imagen: '/badges/explorer.svg', criterioDesbloqueo: 'Visualizar 3 algoritmos' },
-    { nombre: 'Racha de 7', descripcion: 'Estudiaste 7 días consecutivos', imagen: '/badges/streak-7.svg', criterioDesbloqueo: 'rachaDias >= 7' },
-    { nombre: 'Maestro del Orden', descripcion: 'Completaste todos los algoritmos de Ordenamiento', imagen: '/badges/sort-master.svg', criterioDesbloqueo: 'Completar todos los algoritmos de Ordenamiento' },
+    {
+      nombre: 'Primer Paso',
+      descripcion: 'Completaste tu primera simulación',
+      imagen: '/badges/first-step.svg',
+      criterioDesbloqueo: 'Completar 1 simulación',
+      categoria: 'Inicio',
+    },
+    {
+      nombre: 'Explorador',
+      descripcion: 'Visualizaste 3 algoritmos diferentes',
+      imagen: '/badges/explorer.svg',
+      criterioDesbloqueo: 'Visualizar 3 algoritmos',
+      categoria: 'Exploración',
+    },
+    {
+      nombre: 'Racha de 7',
+      descripcion: 'Estudiaste 7 días consecutivos',
+      imagen: '/badges/streak-7.svg',
+      criterioDesbloqueo: 'rachaDías >= 7',
+      categoria: 'Constancia',
+    },
+    {
+      nombre: 'Maestro del Orden',
+      descripcion: 'Completaste todos los algoritmos de Ordenamiento',
+      imagen: '/badges/sort-master.svg',
+      criterioDesbloqueo: 'Completar todos los algoritmos de Ordenamiento',
+      categoria: 'Ordenamiento',
+    },
   ];
 
   for (const badge of insignias) {

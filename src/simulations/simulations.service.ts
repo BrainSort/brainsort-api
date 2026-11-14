@@ -92,7 +92,7 @@ export class SimulationsService {
     }
 
     // 5. Crear SesionSimulacion
-    await this.prisma.sesionSimulacion.create({
+    const sesion = await this.prisma.sesionSimulacion.create({
       data: {
         usuarioId,
         algoritmoId,
@@ -106,6 +106,7 @@ export class SimulationsService {
     // 6. Retornar simulación completa según contrato CO3
     return {
       simulacion: {
+        ...(sesion?.id ? { sesionId: sesion.id } : {}),
         velocidadReproduccion: 1.0,
         estadoActual: 'Pausa',
         pasoActual: 0,
@@ -233,7 +234,7 @@ export class SimulationsService {
   async updateSessionProgress(
     sesionId: string,
     pasosCompletados: number,
-  ): Promise<void> {
+  ): Promise<{ completada: boolean; nuevasInsignias: any[] }> {
     const sesion = await this.prisma.sesionSimulacion.findUnique({
       where: { id: sesionId },
     });
@@ -254,8 +255,16 @@ export class SimulationsService {
     });
 
     // Verificar insignias solo cuando la sesión se completa
+    let nuevasInsignias: any[] = [];
     if (completada) {
-      await this.badgesService.checkAndAward(sesion.usuarioId);
+      const otorgadas = await this.badgesService.checkAndAward(
+        sesion.usuarioId,
+      );
+      if (Array.isArray(otorgadas)) {
+        nuevasInsignias = otorgadas;
+      }
     }
+
+    return { completada, nuevasInsignias };
   }
 }
