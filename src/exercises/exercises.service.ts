@@ -118,8 +118,12 @@ export class ExercisesService {
     });
 
     // Verificar insignias post-correcto
+    let nuevasInsignias: any[] | undefined;
     if (isCorrect) {
-      await this.badgesService.checkAndAward(usuarioId);
+      const otorgadas = await this.badgesService.checkAndAward(usuarioId);
+      if (Array.isArray(otorgadas) && otorgadas.length > 0) {
+        nuevasInsignias = otorgadas;
+      }
     }
 
     return {
@@ -132,6 +136,7 @@ export class ExercisesService {
       posicionRanking,
       nivelActual: progreso.nivelActual,
       puntosTotales: progreso.puntosTotales,
+      ...(nuevasInsignias ? { nuevasInsignias } : {}),
     };
   }
 
