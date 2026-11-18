@@ -19,7 +19,10 @@ export const LinearSearch: AlgorithmDefinition = {
     complejidadEspacio: 'O(1)',
     categoria: 'Busqueda',
   },
-  execute(data: number[], optionsOrTarget?: EngineOptions | number): SimulationStep[] {
+  execute(
+    data: number[],
+    optionsOrTarget?: EngineOptions | number,
+  ): SimulationStep[] {
     const options: EngineOptions | undefined =
       typeof optionsOrTarget === 'number'
         ? { objetivo: optionsOrTarget }
