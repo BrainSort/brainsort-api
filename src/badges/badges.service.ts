@@ -24,6 +24,17 @@ interface BadgeRule {
   }) => boolean;
 }
 
+const BADGE_PRIORITY_ORDER: Record<string, number> = {
+  'Completar 1 simulación': 1,
+  'rachaDias >= 1': 2,
+  'rachaDías >= 1': 2,
+  'Completar 1 simulación de Estructura de Datos': 3,
+  'Visualizar 3 algoritmos': 4,
+  'rachaDías >= 7': 5,
+  'rachaDias >= 7': 5,
+  'Completar todos los algoritmos de Ordenamiento': 6,
+};
+
 @Injectable()
 export class BadgesService {
   private badgesCache: any[] = [];
@@ -131,10 +142,28 @@ export class BadgesService {
     return this.checkAndAward(payload.usuarioId);
   }
 
+  private getBadgePriority(criterioDesbloqueo?: string): number {
+    return BADGE_PRIORITY_ORDER[criterioDesbloqueo ?? ''] ?? 99;
+  }
+
+  private sortBadgesByProgression<
+    T extends { criterioDesbloqueo?: string; nombre?: string },
+  >(badges: T[]): T[] {
+    return [...badges].sort((a, b) => {
+      const diff =
+        this.getBadgePriority(a.criterioDesbloqueo) -
+        this.getBadgePriority(b.criterioDesbloqueo);
+      if (diff !== 0) return diff;
+      return (a.nombre ?? '').localeCompare(b.nombre ?? '');
+    });
+  }
+
   private async loadBadgesCache() {
     try {
-      const badges = await this.prisma.insignia.findMany();
-      this.badgesCache = badges ?? [];
+      const badges = await this.prisma.insignia.findMany({
+        orderBy: { createdAt: 'asc' },
+      });
+      this.badgesCache = this.sortBadgesByProgression(badges ?? []);
       this.cacheTimestamp = new Date();
     } catch {
       this.badgesCache = [];
@@ -196,7 +225,7 @@ export class BadgesService {
       userBadgeMap.set(ui.insigniaId, ui.fechaObtencion);
     }
 
-    return allBadges.map((badge) => {
+    const mapped = allBadges.map((badge) => {
       const desbloqueada = userBadgeMap.has(badge.id);
       return {
         id: badge.id,
@@ -208,6 +237,22 @@ export class BadgesService {
         desbloqueada,
         fechaObtencion: desbloqueada ? userBadgeMap.get(badge.id) : undefined,
       };
+    });
+
+    return mapped.sort((a, b) => {
+      if (a.desbloqueada !== b.desbloqueada) {
+        return a.desbloqueada ? -1 : 1;
+      }
+      if (a.desbloqueada && b.desbloqueada) {
+        const timeA = a.fechaObtencion ? new Date(a.fechaObtencion).getTime() : 0;
+        const timeB = b.fechaObtencion ? new Date(b.fechaObtencion).getTime() : 0;
+        if (timeA !== timeB) return timeB - timeA;
+      }
+      const prioDiff =
+        this.getBadgePriority(a.criterioDesbloqueo) -
+        this.getBadgePriority(b.criterioDesbloqueo);
+      if (prioDiff !== 0) return prioDiff;
+      return a.nombre.localeCompare(b.nombre);
     });
   }
 

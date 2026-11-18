@@ -11,6 +11,7 @@ describe('ExercisesService', () => {
     ejercicioPrediccion: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
     progresoUsuario: {
       findUnique: jest.fn(),
@@ -20,6 +21,7 @@ describe('ExercisesService', () => {
     },
     respuestaEjercicio: {
       create: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -29,6 +31,10 @@ describe('ExercisesService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPrismaService.ejercicioPrediccion.count.mockResolvedValue(1);
+    mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([
+      { ejercicioId: 'ejr-1' },
+    ]);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExercisesService,
@@ -461,6 +467,83 @@ describe('ExercisesService', () => {
 
       expect(result.puntosTotales).toBe(320);
       expect(result.nivelActual).toBe(2);
+    });
+
+    it('no debe incrementar la racha con respuesta incorrecta aunque la sección tenga 1 ejercicio', async () => {
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 0,
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[9, 9, 9]' },
+        'user-1',
+      );
+
+      expect(result.correcto).toBe(false);
+      expect(result.rachaDias).toBe(0);
+      expect(mockPrismaService.ejercicioPrediccion.count).not.toHaveBeenCalled();
+    });
+
+    it('no debe incrementar la racha con progreso parcial (1 de 3 ejercicios correctos)', async () => {
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.ejercicioPrediccion.count.mockResolvedValue(3);
+      mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([
+        { ejercicioId: 'ejr-1' },
+      ]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 0,
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.correcto).toBe(true);
+      expect(result.rachaDias).toBe(0);
+    });
+
+    it('sí debe incrementar la racha al completar todos los ejercicios de la sección (3 de 3)', async () => {
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.ejercicioPrediccion.count.mockResolvedValue(3);
+      mockPrismaService.respuestaEjercicio.findMany.mockResolvedValue([
+        { ejercicioId: 'ejr-1' },
+        { ejercicioId: 'ejr-2' },
+        { ejercicioId: 'ejr-3' },
+      ]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 0,
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.correcto).toBe(true);
+      expect(result.rachaDias).toBe(1);
     });
   });
 });

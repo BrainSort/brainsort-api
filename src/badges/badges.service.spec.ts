@@ -408,6 +408,101 @@ describe('BadgesService', () => {
       expect(awarded).toHaveLength(1);
       expect(awarded[0].nombre).toBe('El comienzo de algo grande');
     });
+
+    it('should award multiple badges in canonical progression order regardless of DB order', async () => {
+      const dsBadge = {
+        id: 'b-ds',
+        nombre: 'Organizar es bueno',
+        descripcion: 'Dominaste tu primera simulación de Estructura de Datos',
+        imagen: '/badges/data-structure-first.svg',
+        criterioDesbloqueo: 'Completar 1 simulación de Estructura de Datos',
+        categoria: 'Estructuras',
+      };
+      const firstBadge = {
+        id: 'b-first',
+        nombre: 'Primer Paso',
+        descripcion: 'Completaste tu primera simulación',
+        imagen: '/badges/first-step.svg',
+        criterioDesbloqueo: 'Completar 1 simulación',
+        categoria: 'Inicio',
+      };
+
+      // Orden invertido desde BD
+      mockPrismaService.insignia.findMany.mockResolvedValue([
+        dsBadge,
+        firstBadge,
+      ]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        id: 'prog1',
+        usuarioId: 'user1',
+        puntosTotales: 0,
+        rachaDias: 0,
+      });
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
+      mockPrismaService.sesionSimulacion.count
+        .mockResolvedValueOnce(1)
+        .mockResolvedValueOnce(1);
+      mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
+      mockPrismaService.algoritmo.count.mockResolvedValue(5);
+
+      const awarded = await service.checkAndAward('user1');
+
+      expect(awarded.map((b) => b.nombre)).toEqual([
+        'Primer Paso',
+        'Organizar es bueno',
+      ]);
+    });
+
+    it('should sort getUserBadges with unlocked first (most recent) and locked in canonical order', async () => {
+      const sortMaster = {
+        id: 'b-sort',
+        nombre: 'Maestro del Orden',
+        descripcion: 'Completaste todos los algoritmos de Ordenamiento',
+        imagen: '/badges/sort-master.svg',
+        criterioDesbloqueo: 'Completar todos los algoritmos de Ordenamiento',
+        categoria: 'Ordenamiento',
+      };
+      const firstBadge = {
+        id: 'b-first',
+        nombre: 'Primer Paso',
+        descripcion: 'Completaste tu primera simulación',
+        imagen: '/badges/first-step.svg',
+        criterioDesbloqueo: 'Completar 1 simulación',
+        categoria: 'Inicio',
+      };
+      const streak1Badge = {
+        id: 'b-streak-1',
+        nombre: 'El comienzo de algo grande',
+        descripcion: '¡Encendiste tu primera racha de 1 día!',
+        imagen: '/badges/streak-1.svg',
+        criterioDesbloqueo: 'rachaDias >= 1',
+        categoria: 'Constancia',
+      };
+
+      mockPrismaService.insignia.findMany.mockResolvedValue([
+        sortMaster,
+        streak1Badge,
+        firstBadge,
+      ]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        id: 'prog1',
+        usuarioId: 'user1',
+      });
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue([
+        {
+          insigniaId: 'b-sort',
+          fechaObtencion: new Date('2026-11-18T10:00:00Z'),
+        },
+      ]);
+
+      const result = await service.getUserBadges('user1');
+
+      expect(result.map((b) => b.nombre)).toEqual([
+        'Maestro del Orden', // desbloqueada primero
+        'Primer Paso', // bloqueada (prioridad 1)
+        'El comienzo de algo grande', // bloqueada (prioridad 2)
+      ]);
+    });
   });
 
   describe('invalidateCache', () => {

@@ -78,13 +78,7 @@ export class ExercisesService {
       feedback = ejercicio.feedbackNegativo;
     }
 
-    // Actualizar racha si es primera actividad del día
-    await this.updateStreak(progreso);
-
-    // Recalcular nivel
-    progreso.nivelActual = this.calculateLevel(progreso.puntosTotales);
-
-    // Guardar respuesta
+    // Guardar respuesta primero para evaluar si completó la sección del algoritmo
     await this.prisma.respuestaEjercicio.create({
       data: {
         usuarioId,
@@ -96,8 +90,22 @@ export class ExercisesService {
       },
     });
 
+    // La racha solo se actualiza cuando el usuario completa toda la sección de ejercicios del algoritmo
+    if (isCorrect) {
+      const seccionCompletada = await this.hasCompletedAlgorithmSection(
+        usuarioId,
+        ejercicio.algoritmoId,
+      );
+      if (seccionCompletada) {
+        await this.updateStreak(progreso);
+        progreso.ultimaActividad = new Date();
+      }
+    }
+
+    // Recalcular nivel
+    progreso.nivelActual = this.calculateLevel(progreso.puntosTotales);
+
     // Actualizar progreso
-    progreso.ultimaActividad = new Date();
     await this.prisma.progresoUsuario.update({
       where: { usuarioId },
       data: {
@@ -180,6 +188,30 @@ export class ExercisesService {
       default:
         return 10;
     }
+  }
+
+  private async hasCompletedAlgorithmSection(
+    usuarioId: string,
+    algoritmoId: string,
+  ): Promise<boolean> {
+    const totalEjercicios = await this.prisma.ejercicioPrediccion.count({
+      where: { algoritmoId },
+    });
+    if (totalEjercicios <= 0) {
+      return false;
+    }
+
+    const completados = await this.prisma.respuestaEjercicio.findMany({
+      where: {
+        usuarioId,
+        correcto: true,
+        ejercicio: { algoritmoId },
+      },
+      distinct: ['ejercicioId'],
+      select: { ejercicioId: true },
+    });
+
+    return completados.length >= totalEjercicios;
   }
 
   private async updateStreak(progreso: any): Promise<void> {
