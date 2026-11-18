@@ -305,7 +305,7 @@ describe('Search Engines Unit Test Suite (LinearSearch & BinarySearch)', () => {
         expect(steps[1]).toMatchObject({
           numeroPaso: 2,
           tipoOperacion: 'insercion',
-          indicesActivos: [],
+          indicesActivos: [0, 1],
           lineaPseudocodigo: 6,
         });
         expect(steps[2]).toMatchObject({

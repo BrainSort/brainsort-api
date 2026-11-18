@@ -44,7 +44,8 @@ export class SimulationStepDto {
 
   @ApiProperty({
     required: false,
-    description: 'Contexto estructurado del paso (punteros, límites, comparaciones, etc.)',
+    description:
+      'Contexto estructurado del paso (punteros, límites, comparaciones, etc.)',
   })
   contexto?: any;
 }

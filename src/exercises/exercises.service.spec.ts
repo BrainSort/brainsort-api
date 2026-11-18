@@ -392,6 +392,54 @@ describe('ExercisesService', () => {
       jest.useRealTimers();
     });
 
+    it('debe iniciar racha en 1 si rachaDias es 0 aunque ultimaActividad sea del mismo día (registro)', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T18:00:00Z'));
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 0,
+        ultimaActividad: new Date('2026-05-17T08:00:00Z'),
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.rachaDias).toBe(1);
+      jest.useRealTimers();
+    });
+
+    it('debe incrementar la racha en días calendario consecutivos aunque hayan pasado menos de 24 horas', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T06:00:00Z'));
+      mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue(
+        mockEjercicio,
+      );
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        ...mockProgreso,
+        rachaDias: 2,
+        ultimaActividad: new Date('2026-05-16T23:30:00Z'),
+      });
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.respuestaEjercicio.create.mockResolvedValue({});
+
+      const result = await service.answerExercise(
+        'ejr-1',
+        { respuesta: '[2, 5, 8, 1]' },
+        'user-1',
+      );
+
+      expect(result.rachaDias).toBe(3);
+      jest.useRealTimers();
+    });
+
     it('debe recalcular nivel cuando los puntos cruzan el umbral', async () => {
       mockPrismaService.ejercicioPrediccion.findUnique.mockResolvedValue({
         ...mockEjercicio,

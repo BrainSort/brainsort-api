@@ -13,12 +13,17 @@ import {
 export const LinearSearch: AlgorithmDefinition = {
   meta: {
     nombre: 'Linear Search',
-    descripcion: 'Revisa secuencialmente cada elemento hasta encontrar el objetivo o llegar al final.',
+    descripcion:
+      'Revisa secuencialmente cada elemento hasta encontrar el objetivo o llegar al final.',
     complejidadTiempo: 'O(n)',
     complejidadEspacio: 'O(1)',
     categoria: 'Busqueda',
   },
-  execute(data: number[], options?: EngineOptions): SimulationStep[] {
+  execute(data: number[], optionsOrTarget?: EngineOptions | number): SimulationStep[] {
+    const options: EngineOptions | undefined =
+      typeof optionsOrTarget === 'number'
+        ? { objetivo: optionsOrTarget }
+        : optionsOrTarget;
     const array = [...data];
     const steps: SimulationStep[] = [];
 

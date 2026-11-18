@@ -183,19 +183,19 @@ export class ExercisesService {
       ? new Date(progreso.ultimaActividad)
       : null;
 
-    if (!ultimaActividad) {
-      // Primera actividad
+    if (!ultimaActividad || progreso.rachaDias <= 0) {
+      // Primera actividad o racha inicial en 0
       progreso.rachaDias = 1;
       return;
     }
 
     const daysDiff = this.getDaysDifference(ultimaActividad, now);
 
-    if (daysDiff === 0) {
+    if (daysDiff <= 0) {
       // Mismo día, no actualizar racha
       return;
     } else if (daysDiff === 1) {
-      // Día siguiente, incrementar racha
+      // Día calendario siguiente, incrementar racha
       progreso.rachaDias += 1;
     } else {
       // Más de un día sin actividad, reiniciar racha
@@ -205,8 +205,17 @@ export class ExercisesService {
 
   private getDaysDifference(date1: Date, date2: Date): number {
     const oneDay = 24 * 60 * 60 * 1000;
-    const diffTime = date2.getTime() - date1.getTime();
-    return Math.floor(diffTime / oneDay);
+    const utc1 = Date.UTC(
+      date1.getUTCFullYear(),
+      date1.getUTCMonth(),
+      date1.getUTCDate(),
+    );
+    const utc2 = Date.UTC(
+      date2.getUTCFullYear(),
+      date2.getUTCMonth(),
+      date2.getUTCDate(),
+    );
+    return Math.round((utc2 - utc1) / oneDay);
   }
 
   /**

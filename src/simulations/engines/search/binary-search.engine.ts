@@ -14,12 +14,17 @@ import {
 export const BinarySearch: AlgorithmDefinition = {
   meta: {
     nombre: 'Binary Search',
-    descripcion: 'Descarta mitades de un arreglo ordenado calculando el punto medio.',
+    descripcion:
+      'Descarta mitades de un arreglo ordenado calculando el punto medio.',
     complejidadTiempo: 'O(log n)',
     complejidadEspacio: 'O(1)',
     categoria: 'Busqueda',
   },
-  execute(data: number[], options?: EngineOptions): SimulationStep[] {
+  execute(data: number[], optionsOrTarget?: EngineOptions | number): SimulationStep[] {
+    const options: EngineOptions | undefined =
+      typeof optionsOrTarget === 'number'
+        ? { objetivo: optionsOrTarget }
+        : optionsOrTarget;
     // Mantener inmutable el input original y ordenar de forma ascendente
     const array = [...data].sort((a, b) => a - b);
     const steps: SimulationStep[] = [];
@@ -118,7 +123,9 @@ export const BinarySearch: AlgorithmDefinition = {
       steps.push({
         numeroPaso: step++,
         tipoOperacion: 'comparacion',
-        indicesActivos: [low, mid, high].filter((idx) => idx >= 0 && idx < array.length),
+        indicesActivos: [low, mid, high].filter(
+          (idx) => idx >= 0 && idx < array.length,
+        ),
         estadoArray: [...array],
         lineaPseudocodigo: 3,
         contexto: {

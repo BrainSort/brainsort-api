@@ -66,6 +66,10 @@ describe('ProgressService', () => {
     service = module.get<ProgressService>(ProgressService);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -171,6 +175,118 @@ describe('ProgressService', () => {
       await expect(service.updateProgress('user1', 50)).rejects.toThrow(
         'Progreso no encontrado',
       );
+    });
+
+    it('should set rachaDias to 1 when rachaDias is 0 even on the same day', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T18:00:00Z'));
+      const mockProgress = {
+        id: '1',
+        usuarioId: 'user1',
+        puntosTotales: 0,
+        nivelActual: 1,
+        rachaDias: 0,
+        posicionRanking: 1,
+        ultimaActividad: new Date('2026-05-17T08:00:00Z'),
+      };
+
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+
+      await service.updateProgress('user1', 50);
+
+      expect(mockPrismaService.progresoUsuario.update).toHaveBeenCalledWith({
+        where: { usuarioId: 'user1' },
+        data: expect.objectContaining({
+          rachaDias: 1,
+        }),
+      });
+    });
+
+    it('should increment rachaDias across consecutive calendar days even if <24h apart', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T06:00:00Z'));
+      const mockProgress = {
+        id: '1',
+        usuarioId: 'user1',
+        puntosTotales: 50,
+        nivelActual: 1,
+        rachaDias: 3,
+        posicionRanking: 1,
+        ultimaActividad: new Date('2026-05-16T23:30:00Z'),
+      };
+
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+
+      await service.updateProgress('user1', 50);
+
+      expect(mockPrismaService.progresoUsuario.update).toHaveBeenCalledWith({
+        where: { usuarioId: 'user1' },
+        data: expect.objectContaining({
+          rachaDias: 4,
+        }),
+      });
+    });
+
+    it('should maintain rachaDias when already active on the same calendar day', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T18:00:00Z'));
+      const mockProgress = {
+        id: '1',
+        usuarioId: 'user1',
+        puntosTotales: 50,
+        nivelActual: 1,
+        rachaDias: 4,
+        posicionRanking: 1,
+        ultimaActividad: new Date('2026-05-17T08:00:00Z'),
+      };
+
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+
+      await service.updateProgress('user1', 50);
+
+      expect(mockPrismaService.progresoUsuario.update).toHaveBeenCalledWith({
+        where: { usuarioId: 'user1' },
+        data: expect.objectContaining({
+          rachaDias: 4,
+        }),
+      });
+    });
+
+    it('should reset rachaDias to 1 when more than one calendar day has passed', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-17T12:00:00Z'));
+      const mockProgress = {
+        id: '1',
+        usuarioId: 'user1',
+        puntosTotales: 50,
+        nivelActual: 1,
+        rachaDias: 5,
+        posicionRanking: 1,
+        ultimaActividad: new Date('2026-05-14T12:00:00Z'),
+      };
+
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue(
+        mockProgress,
+      );
+      mockPrismaService.progresoUsuario.count.mockResolvedValue(0);
+      mockPrismaService.progresoUsuario.update.mockResolvedValue({});
+
+      await service.updateProgress('user1', 50);
+
+      expect(mockPrismaService.progresoUsuario.update).toHaveBeenCalledWith({
+        where: { usuarioId: 'user1' },
+        data: expect.objectContaining({
+          rachaDias: 1,
+        }),
+      });
     });
   });
 });

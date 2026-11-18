@@ -47,7 +47,9 @@ describe('BinarySearch Engine', () => {
 
       expect(lastStep.tipoOperacion).toBe('final');
       expect(lastStep.contexto?.resultado).toBe('encontrado');
-      expect(lastStep.contexto?.indiceEncontrado).toBe(sortedDataset.length - 1);
+      expect(lastStep.contexto?.indiceEncontrado).toBe(
+        sortedDataset.length - 1,
+      );
     });
 
     it('debe incluir marcadores L, R, M durante la exploración', () => {

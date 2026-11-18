@@ -184,6 +184,9 @@ export class ProgressService {
     // Actualizar puntos
     progreso.puntosTotales += puntosGanados;
 
+    // Actualizar racha antes de actualizar ultimaActividad
+    this.updateStreak(progreso);
+
     // Recalcular nivel
     progreso.nivelActual = this.calculateLevel(progreso.puntosTotales);
 
@@ -200,6 +203,7 @@ export class ProgressService {
       data: {
         puntosTotales: progreso.puntosTotales,
         nivelActual: progreso.nivelActual,
+        rachaDias: progreso.rachaDias,
         posicionRanking: progreso.posicionRanking,
         ultimaActividad: progreso.ultimaActividad,
       },
@@ -207,6 +211,46 @@ export class ProgressService {
 
     // Verificar insignias post-racha
     await this.badgesService.checkAndAward(usuarioId);
+  }
+
+  private updateStreak(progreso: {
+    rachaDias: number;
+    ultimaActividad: Date | string | null;
+  }): void {
+    const now = new Date();
+    const ultimaActividad = progreso.ultimaActividad
+      ? new Date(progreso.ultimaActividad)
+      : null;
+
+    if (!ultimaActividad || progreso.rachaDias <= 0) {
+      progreso.rachaDias = 1;
+      return;
+    }
+
+    const daysDiff = this.getDaysDifference(ultimaActividad, now);
+
+    if (daysDiff <= 0) {
+      return;
+    } else if (daysDiff === 1) {
+      progreso.rachaDias += 1;
+    } else {
+      progreso.rachaDias = 1;
+    }
+  }
+
+  private getDaysDifference(date1: Date, date2: Date): number {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const utc1 = Date.UTC(
+      date1.getUTCFullYear(),
+      date1.getUTCMonth(),
+      date1.getUTCDate(),
+    );
+    const utc2 = Date.UTC(
+      date2.getUTCFullYear(),
+      date2.getUTCMonth(),
+      date2.getUTCDate(),
+    );
+    return Math.round((utc2 - utc1) / oneDay);
   }
 
   /**
