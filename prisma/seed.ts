@@ -935,7 +935,10 @@ export function getExerciseSeeds(): ExerciseSeed[] {
           'Intercambiar solo si el arreglo ya está ordenado',
           'devolver arreglo sin cambios',
         ],
-        contenido: { antes: '', despues: '' },
+        contenido:
+          algoName === 'Linear Search'
+            ? { antes: 'Para i = 0 hasta n - 1: ', despues: ': devolver i' }
+            : { antes: '', despues: '' },
         feedbackPositivo: 'Bien: elegiste la línea que captura la decisión central.',
         feedbackNegativo: 'El hueco debe representar la regla que guía el avance del algoritmo.',
       },
@@ -1121,6 +1124,16 @@ export function getExerciseSeeds(): ExerciseSeed[] {
           nodos: ['A', 'B', 'C', 'D'],
           aristas: [['A', 'B'], ['A', 'C'], ['B', 'C'], ['C', 'D']],
           dirigido: false,
+          pesos: {
+            'A-B': 1,
+            'B-A': 1,
+            'A-C': 4,
+            'C-A': 4,
+            'B-C': 2,
+            'C-B': 2,
+            'C-D': 1,
+            'D-C': 1,
+          },
         },
         nodoInicio: 'A',
         secuenciaEsperada: ['A', 'B', 'C', 'D'],
