@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-type ExerciseSeed = {
+export type ExerciseSeed = {
   algoritmo: string;
   tipo: 'PrediccionTexto' | 'CompletarPseudocodigo' | 'OrdenarBarras' | 'SecuenciaGrafos';
   pregunta: string;
@@ -19,6 +19,28 @@ type ExerciseSeed = {
   opciones?: Prisma.InputJsonValue;
   contenido?: Prisma.InputJsonValue;
 };
+
+export function getSeedAlgorithmNames(): string[] {
+  return [
+    'Bubble Sort',
+    'Selection Sort',
+    'Insertion Sort',
+    'Stack',
+    'Queue',
+    'Linked List',
+    'Merge Sort',
+    'Quick Sort',
+    'Heap Sort',
+    'Binary Search',
+    'Linear Search',
+    'Deque',
+    'Priority Queue',
+    'Segment Tree',
+    'Breadth-First Search',
+    'Depth-First Search',
+    'Dijkstra',
+  ];
+}
 
 const visualizationRoles = {
   activo: { color: '#F5A623' },
@@ -498,7 +520,171 @@ async function main() {
     });
   }
 
-  // 3. Seed de ejercicios gamificados: completar pseudocódigo y ordenar barras
+  // 3. Seed de ejercicios gamificados
+  const brokenQuestions = [
+    'Mueve las barras al estado esperado para: Índices revisados para buscar 8 en [4, 6, 8, 2].',
+    'Mueve las barras al estado esperado para: Resultado de push(1), push(2), push(3), pop().',
+    'Mueve las barras al estado esperado para: Resultado de enqueue(A), enqueue(B), enqueue(C), dequeue().',
+    'Mueve las barras al estado esperado para: Estado tras pushFront(2), pushBack(3), pushFront(1).',
+    'Mueve las barras al estado esperado para: Construcción por suma para hojas [2, 1, 5, 3].',
+  ];
+
+  const oldBroken = await prisma.ejercicioPrediccion.findMany({
+    where: { pregunta: { in: brokenQuestions } },
+    select: { id: true },
+  });
+  if (oldBroken.length > 0) {
+    const oldBrokenIds = oldBroken.map((e) => e.id);
+    await prisma.respuestaEjercicio.deleteMany({
+      where: { ejercicioId: { in: oldBrokenIds } },
+    });
+    await prisma.ejercicioPrediccion.deleteMany({
+      where: { id: { in: oldBrokenIds } },
+    });
+  }
+
+  for (const seed of getExerciseSeeds()) {
+    await ensureExercise(seed);
+  }
+  // 4. Seed de insignias
+  const insignias = [
+    {
+      nombre: 'Primer Paso',
+      descripcion: 'Completaste tu primera simulación',
+      imagen: '/badges/first-step.svg',
+      criterioDesbloqueo: 'Completar 1 simulación',
+      categoria: 'Inicio',
+    },
+    {
+      nombre: 'Explorador',
+      descripcion: 'Visualizaste 3 algoritmos diferentes',
+      imagen: '/badges/explorer.svg',
+      criterioDesbloqueo: 'Visualizar 3 algoritmos',
+      categoria: 'Exploración',
+    },
+    {
+      nombre: 'Racha de 7',
+      descripcion: 'Estudiaste 7 días consecutivos',
+      imagen: '/badges/streak-7.svg',
+      criterioDesbloqueo: 'rachaDías >= 7',
+      categoria: 'Constancia',
+    },
+    {
+      nombre: 'Maestro del Orden',
+      descripcion: 'Completaste todos los algoritmos de Ordenamiento',
+      imagen: '/badges/sort-master.svg',
+      criterioDesbloqueo: 'Completar todos los algoritmos de Ordenamiento',
+      categoria: 'Ordenamiento',
+    },
+    {
+      nombre: 'Organizar es bueno',
+      descripcion: 'Dominaste tu primera simulación de Estructura de Datos',
+      imagen: '/badges/data-structure-first.svg',
+      criterioDesbloqueo: 'Completar 1 simulación de Estructura de Datos',
+      categoria: 'Estructuras',
+    },
+    {
+      nombre: 'El comienzo de algo grande',
+      descripcion: '¡Encendiste tu primera racha de 1 día!',
+      imagen: '/badges/streak-1.svg',
+      criterioDesbloqueo: 'rachaDias >= 1',
+      categoria: 'Constancia',
+    },
+  ];
+
+  for (const badge of insignias) {
+    await prisma.insignia.upsert({
+      where: { nombre: badge.nombre },
+      update: badge,
+      create: badge,
+    });
+  }
+
+  // 5. Seed de Preguntas Diagnóstico (incluyendo estructuras lineales y avanzadas)
+  await prisma.preguntaDiagnostico.deleteMany();
+  const preguntas = [
+    {
+      pregunta: '¿Cuál es el tiempo de complejidad promedio de Bubble Sort?',
+      opciones: ['O(n)', 'O(n log n)', 'O(n²)', 'O(1)'],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué algoritmo utiliza la técnica "Divide y Vencerás"?',
+      opciones: ['Insertion Sort', 'Merge Sort', 'Selection Sort', 'Bubble Sort'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Qué significa que un algoritmo de ordenamiento sea "Estable"?',
+      opciones: [
+        'Nunca arroja errores durante la ejecución.',
+        'El tiempo de ejecución siempre es el mismo.',
+        'Mantiene el orden relativo de elementos con claves iguales.',
+        'Utiliza O(1) de memoria extra.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué principio sigue una estructura tipo Stack?',
+      opciones: ['FIFO', 'LIFO', 'Aleatorio', 'Ordenado'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Cuál es la diferencia principal entre un Stack y una Queue?',
+      opciones: [
+        'El Stack usa más memoria que la Queue.',
+        'La Queue es más rápida que el Stack.',
+        'En un Stack, el último en entrar es el primero en salir; en una Queue, el primero en entrar es el primero en salir.',
+        'No hay diferencia entre ambas estructuras.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Qué ventaja tiene una Lista Enlazada sobre un arreglo?',
+      opciones: [
+        'Acceso más rápido por índice.',
+        'Menor uso de memoria por elemento.',
+        'Inserción y eliminación eficiente sin necesidad de redimensionar.',
+        'Búsqueda binaria disponible de forma nativa.',
+      ],
+      indiceCorrecto: 2,
+    },
+    {
+      pregunta: '¿Cuál es la complejidad temporal de la Búsqueda Binaria en el peor de los casos?',
+      opciones: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+      indiceCorrecto: 1,
+    },
+    {
+      pregunta: '¿Cuál es el propósito principal de un Segment Tree?',
+      opciones: [
+        'Responder consultas y actualizaciones de rango en O(log n).',
+        'Ordenar un arreglo en tiempo lineal.',
+        'Estructura para implementar colas LIFO.',
+        'Búsqueda secuencial en listas enlazadas.',
+      ],
+      indiceCorrecto: 0,
+    },
+  ];
+
+  for (const p of preguntas) {
+    await prisma.preguntaDiagnostico.create({ data: p });
+  }
+
+  console.log('✅ Seed completado');
+}
+
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
+
+
+export function getExerciseSeeds(): ExerciseSeed[] {
   const exerciseSeeds: ExerciseSeed[] = [
     {
       algoritmo: 'Bubble Sort',
@@ -645,6 +831,75 @@ async function main() {
     },
   ];
 
+  type SelectionOverride = {
+    pregunta: string;
+    respuestaCorrecta: string;
+    inicial: number[];
+    pasoObjetivo: string;
+    feedbackPositivo: string;
+    feedbackNegativo: string;
+  };
+
+  const selectionOverrides: Record<string, SelectionOverride> = {
+    'Linear Search': {
+      pregunta:
+        'Buscamos el número 8 en [4, 6, 8, 2] con Linear Search. Selecciona la barra donde se detiene la búsqueda.',
+      respuestaCorrecta: '2',
+      inicial: [4, 6, 8, 2],
+      pasoObjetivo: 'Linear Search revisa 0, 1 y encuentra 8 en el índice 2.',
+      feedbackPositivo:
+        '¡Correcto! Linear Search avanza índice por índice hasta encontrar el 8 en la posición 2.',
+      feedbackNegativo:
+        'Recuerda contar desde el índice 0: [4 (0), 6 (1), 8 (2), 2 (3)].',
+    },
+    Stack: {
+      pregunta:
+        'En una pila [1, 2, 3] (donde 3 es el tope), selecciona la barra que se extrae al ejecutar pop().',
+      respuestaCorrecta: '2',
+      inicial: [1, 2, 3],
+      pasoObjetivo: 'LIFO: pop() extrae el tope (índice 2, valor 3).',
+      feedbackPositivo:
+        '¡Exacto! Una pila es LIFO, por lo que pop() extrae el elemento del tope (índice 2, valor 3).',
+      feedbackNegativo:
+        'En una pila LIFO el último elemento en entrar es el primero en salir (índice 2, valor 3).',
+    },
+    Queue: {
+      pregunta:
+        'En una cola [1, 2, 3] (donde 1 está al frente), selecciona la barra que sale primero al ejecutar dequeue().',
+      respuestaCorrecta: '0',
+      inicial: [1, 2, 3],
+      pasoObjetivo: 'FIFO: dequeue() extrae el frente (índice 0, valor 1).',
+      feedbackPositivo:
+        '¡Correcto! Una cola es FIFO, por lo que dequeue() extrae el primer elemento del frente (índice 0, valor 1).',
+      feedbackNegativo:
+        'En una cola FIFO el primer elemento en entrar es el primero en salir (índice 0, valor 1).',
+    },
+    Deque: {
+      pregunta:
+        'En un Deque [4, 7, 2, 9], selecciona la barra que se extrae al ejecutar popBack().',
+      respuestaCorrecta: '3',
+      inicial: [4, 7, 2, 9],
+      pasoObjetivo:
+        'popBack() extrae el elemento del extremo derecho (índice 3, valor 9).',
+      feedbackPositivo:
+        '¡Muy bien! popBack() remueve el elemento del extremo trasero/derecho (índice 3, valor 9).',
+      feedbackNegativo:
+        'popBack() opera sobre el extremo derecho del Deque (índice 3, valor 9).',
+    },
+    'Segment Tree': {
+      pregunta:
+        'En el Segment Tree por suma [11, 3, 8, 2, 1, 5, 3] (raíz en índice 0), selecciona la barra que representa la suma total del rango [0..3].',
+      respuestaCorrecta: '0',
+      inicial: [11, 3, 8, 2, 1, 5, 3],
+      pasoObjetivo:
+        'La raíz (índice 0, valor 11) almacena la suma total 2+1+5+3.',
+      feedbackPositivo:
+        '¡Excelente! La raíz en el índice 0 acumula la suma total de todo el arreglo (2+1+5+3 = 11).',
+      feedbackNegativo:
+        'En un Segment Tree indexado desde 0, la raíz (índice 0) guarda el agregado del rango completo [0..3].',
+    },
+  };
+
   const moreExerciseSeeds: ExerciseSeed[] = [
     ['Merge Sort', 'Mitades ordenadas de [4, 3, 2, 1]', '[3, 4, 1, 2]', 'Merge(arreglo, izquierda, mitad, derecha)', [4, 3, 2, 1], [3, 4, 1, 2]],
     ['Quick Sort', 'Partición con pivote 3 en [4, 2, 5, 1, 3]', '[2, 1, 3, 4, 5]', 'pivotIndex = particionar(arreglo, low, high)', [4, 2, 5, 1, 3], [2, 1, 3, 4, 5]],
@@ -656,34 +911,61 @@ async function main() {
     ['Deque', 'Estado tras pushFront(2), pushBack(3), pushFront(1)', '[1, 2, 3]', 'pushFront(valor): insertar al inicio', [2, 3], [1, 2, 3]],
     ['Priority Queue', 'Orden de atención para prioridades [2, 5, 1]', '[5, 2, 1]', 'extraerMax(): remover raíz y reordenar heap', [2, 5, 1], [5, 2, 1]],
     ['Segment Tree', 'Construcción por suma para hojas [2, 1, 5, 3]', '[11, 3, 8, 2, 1, 5, 3]', 'tree[nodo] = tree[2*nodo] + tree[2*nodo+1]', [2, 1, 5, 3], [11, 3, 8, 2, 1, 5, 3]],
-  ].flatMap(([algoritmo, predPregunta, predRespuesta, pseudoRespuesta, inicial, objetivo]) => [
-    {
-      algoritmo: algoritmo as string,
-      tipo: 'CompletarPseudocodigo' as const,
-      pregunta: `Completa la línea clave de ${algoritmo}.`,
-      respuestaCorrecta: pseudoRespuesta as string,
-      dificultad: algoritmo === 'Priority Queue' || algoritmo === 'Quick Sort' || algoritmo === 'Heap Sort' || algoritmo === 'Segment Tree' ? 'Dificil' as const : 'Medio' as const,
-      opciones: [
-        pseudoRespuesta,
-        'Para i = 0 hasta n - 1',
-        'Intercambiar solo si el arreglo ya está ordenado',
-        'devolver arreglo sin cambios',
-      ],
-      contenido: { antes: '', despues: '' },
-      feedbackPositivo: 'Bien: elegiste la línea que captura la decisión central.',
-      feedbackNegativo: 'El hueco debe representar la regla que guía el avance del algoritmo.',
-    },
-    {
-      algoritmo: algoritmo as string,
-      tipo: 'OrdenarBarras' as const,
-      pregunta: `Mueve las barras al estado esperado para: ${predPregunta}.`,
-      respuestaCorrecta: JSON.stringify(objetivo),
-      dificultad: algoritmo === 'Priority Queue' || algoritmo === 'Quick Sort' || algoritmo === 'Heap Sort' || algoritmo === 'Segment Tree' ? 'Dificil' as const : 'Medio' as const,
-      contenido: { inicial, pasoObjetivo: predPregunta, objetivo },
-      feedbackPositivo: 'Exacto: el estado visual coincide con el paso objetivo.',
-      feedbackNegativo: 'Compara qué elementos cambian de posición en ese paso.',
-    },
-  ]);
+  ].flatMap(([algoritmo, predPregunta, predRespuesta, pseudoRespuesta, inicial, objetivo]) => {
+    const algoName = algoritmo as string;
+    const dificultad =
+      algoName === 'Priority Queue' ||
+      algoName === 'Quick Sort' ||
+      algoName === 'Heap Sort' ||
+      algoName === 'Segment Tree'
+        ? ('Dificil' as const)
+        : ('Medio' as const);
+    const override = selectionOverrides[algoName];
+
+    return [
+      {
+        algoritmo: algoName,
+        tipo: 'CompletarPseudocodigo' as const,
+        pregunta: `Completa la línea clave de ${algoName}.`,
+        respuestaCorrecta: pseudoRespuesta as string,
+        dificultad,
+        opciones: [
+          pseudoRespuesta,
+          'Para i = 0 hasta n - 1',
+          'Intercambiar solo si el arreglo ya está ordenado',
+          'devolver arreglo sin cambios',
+        ],
+        contenido: { antes: '', despues: '' },
+        feedbackPositivo: 'Bien: elegiste la línea que captura la decisión central.',
+        feedbackNegativo: 'El hueco debe representar la regla que guía el avance del algoritmo.',
+      },
+      override
+        ? {
+            algoritmo: algoName,
+            tipo: 'OrdenarBarras' as const,
+            pregunta: override.pregunta,
+            respuestaCorrecta: override.respuestaCorrecta,
+            dificultad,
+            contenido: {
+              modoSeleccion: true,
+              inicial: override.inicial,
+              pasoObjetivo: override.pasoObjetivo,
+            },
+            feedbackPositivo: override.feedbackPositivo,
+            feedbackNegativo: override.feedbackNegativo,
+          }
+        : {
+            algoritmo: algoName,
+            tipo: 'OrdenarBarras' as const,
+            pregunta: `Mueve las barras al estado esperado para: ${predPregunta}.`,
+            respuestaCorrecta: JSON.stringify(objetivo),
+            dificultad,
+            contenido: { inicial, pasoObjetivo: predPregunta, objetivo },
+            feedbackPositivo: 'Exacto: el estado visual coincide con el paso objetivo.',
+            feedbackNegativo: 'Compara qué elementos cambian de posición en ese paso.',
+          },
+    ];
+  });
 
   const graphExerciseSeeds: ExerciseSeed[] = [
     {
@@ -877,128 +1159,145 @@ async function main() {
       feedbackNegativo: 'Entre los valores pendientes [5, 2, 8], el menor es 2 en el índice 1.',
     },
   ];
-
-  for (const seed of [...exerciseSeeds, ...moreExerciseSeeds, ...graphExerciseSeeds]) {
-    await ensureExercise(seed);
-  }
-
-  // 4. Seed de insignias
-  const insignias = [
+  const extraPedagogicalSeeds: ExerciseSeed[] = [
     {
-      nombre: 'Primer Paso',
-      descripcion: 'Completaste tu primera simulación',
-      imagen: '/badges/first-step.svg',
-      criterioDesbloqueo: 'Completar 1 simulación',
-      categoria: 'Inicio',
+      algoritmo: 'Bubble Sort',
+      tipo: 'PrediccionTexto',
+      pregunta: '¿Cuántos intercambios realiza Bubble Sort para ordenar [2, 1, 3]?',
+      respuestaCorrecta: '1',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Exacto! Solo se intercambia el par (2, 1) y el resto ya está ordenado.',
+      feedbackNegativo: 'Revisa los pares adyacentes de [2, 1, 3]: solo 2 y 1 están fuera de orden.',
     },
     {
-      nombre: 'Explorador',
-      descripcion: 'Visualizaste 3 algoritmos diferentes',
-      imagen: '/badges/explorer.svg',
-      criterioDesbloqueo: 'Visualizar 3 algoritmos',
-      categoria: 'Exploración',
+      algoritmo: 'Selection Sort',
+      tipo: 'PrediccionTexto',
+      pregunta: 'En Selection Sort sobre [9, 4, 7, 2], ¿qué valor se coloca en el índice 0 tras la primera iteración?',
+      respuestaCorrecta: '2',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Correcto! Selection Sort busca el mínimo global (2) y lo intercambia al índice 0.',
+      feedbackNegativo: 'Selection Sort selecciona el menor de todo el arreglo para colocarlo al inicio.',
     },
     {
-      nombre: 'Racha de 7',
-      descripcion: 'Estudiaste 7 días consecutivos',
-      imagen: '/badges/streak-7.svg',
-      criterioDesbloqueo: 'rachaDías >= 7',
-      categoria: 'Constancia',
+      algoritmo: 'Insertion Sort',
+      tipo: 'PrediccionTexto',
+      pregunta: 'En Insertion Sort sobre [2, 4, 5, 3], ¿cuántos elementos se desplazan a la derecha al insertar el 3?',
+      respuestaCorrecta: '2',
+      dificultad: 'Medio',
+      feedbackPositivo: '¡Bien! Se desplazan el 5 y el 4 para abrir espacio al 3.',
+      feedbackNegativo: 'Cuenta cuántos elementos mayores que 3 están a su izquierda: 4 y 5.',
     },
     {
-      nombre: 'Maestro del Orden',
-      descripcion: 'Completaste todos los algoritmos de Ordenamiento',
-      imagen: '/badges/sort-master.svg',
-      criterioDesbloqueo: 'Completar todos los algoritmos de Ordenamiento',
-      categoria: 'Ordenamiento',
+      algoritmo: 'Merge Sort',
+      tipo: 'PrediccionTexto',
+      pregunta: 'Si Merge Sort divide un arreglo de 8 elementos hasta subarreglos de tamaño 1, ¿cuántos niveles de división se realizan?',
+      respuestaCorrecta: '3',
+      dificultad: 'Medio',
+      feedbackPositivo: '¡Correcto! 8 → 4 → 2 → 1 son log2(8) = 3 niveles de división.',
+      feedbackNegativo: 'Divide 8 entre 2 repetidamente hasta llegar a 1: 8→4 (1), 4→2 (2), 2→1 (3).',
+    },
+    {
+      algoritmo: 'Quick Sort',
+      tipo: 'PrediccionTexto',
+      pregunta: 'En Quick Sort (pivote al final) sobre [3, 8, 2, 5], ¿qué valor se toma como pivote inicial?',
+      respuestaCorrecta: '5',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Exacto! Con la convención de último elemento, el pivote inicial es 5.',
+      feedbackNegativo: 'El pivote al final del arreglo [3, 8, 2, 5] es el último número.',
+    },
+    {
+      algoritmo: 'Heap Sort',
+      tipo: 'OrdenarBarras',
+      pregunta: 'En el max-heap [9, 6, 7, 2, 4], selecciona la barra que Heap Sort intercambiará con el último elemento en el siguiente paso.',
+      respuestaCorrecta: '0',
+      dificultad: 'Medio',
+      contenido: {
+        modoSeleccion: true,
+        inicial: [9, 6, 7, 2, 4],
+        pasoObjetivo: 'La raíz del max-heap (índice 0, valor 9) se mueve al final del arreglo.',
+      },
+      feedbackPositivo: '¡Correcto! El máximo siempre está en la raíz (índice 0) y se intercambia con el último elemento.',
+      feedbackNegativo: 'En un max-heap, el mayor elemento está en la raíz (índice 0).',
+    },
+    {
+      algoritmo: 'Linear Search',
+      tipo: 'PrediccionTexto',
+      pregunta: 'En Linear Search sobre [12, 5, 9, 14, 7], ¿cuántas comparaciones se necesitan para encontrar el 9?',
+      respuestaCorrecta: '3',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Exacto! Compara 12 (1), 5 (2) y 9 (3) para encontrarlo.',
+      feedbackNegativo: 'Linear Search evalúa secuencialmente desde el índice 0: 12, 5, 9.',
+    },
+    {
+      algoritmo: 'Stack',
+      tipo: 'PrediccionTexto',
+      pregunta: 'Tras ejecutar push(4), push(7), pop(), push(2) en una pila vacía, ¿qué valor está en el tope?',
+      respuestaCorrecta: '2',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Correcto! El último push(2) queda en el tope de la pila.',
+      feedbackNegativo: 'push(7) se elimina con pop(), y luego push(2) coloca al 2 en el tope.',
+    },
+    {
+      algoritmo: 'Queue',
+      tipo: 'PrediccionTexto',
+      pregunta: 'Tras ejecutar enqueue(10), enqueue(20), dequeue(), enqueue(30) en una cola vacía, ¿qué valor está al frente?',
+      respuestaCorrecta: '20',
+      dificultad: 'Facil',
+      feedbackPositivo: '¡Exacto! dequeue() saca al 10 y deja al 20 al frente de la cola.',
+      feedbackNegativo: 'En FIFO, dequeue() retira el 10 y el siguiente elemento en llegar (20) queda al frente.',
+    },
+    {
+      algoritmo: 'Linked List',
+      tipo: 'OrdenarBarras',
+      pregunta: 'En la lista enlazada [15, 8, 23, 4], selecciona la barra que corresponde a la cabeza (head) de la lista.',
+      respuestaCorrecta: '0',
+      dificultad: 'Facil',
+      contenido: {
+        modoSeleccion: true,
+        inicial: [15, 8, 23, 4],
+        pasoObjetivo: 'La cabeza (head) apunta al primer nodo de la lista (índice 0, valor 15).',
+      },
+      feedbackPositivo: '¡Correcto! La cabeza siempre referencia al primer nodo (índice 0, valor 15).',
+      feedbackNegativo: 'El primer nodo de la lista [15, 8, 23, 4] está en el índice 0.',
+    },
+    {
+      algoritmo: 'Deque',
+      tipo: 'PrediccionTexto',
+      pregunta: 'Tras ejecutar pushBack(5), pushFront(1), pushBack(8) en un Deque vacío, ¿qué valor queda al frente (front)?',
+      respuestaCorrecta: '1',
+      dificultad: 'Medio',
+      feedbackPositivo: '¡Exacto! pushFront(1) inserta al 1 al frente del Deque.',
+      feedbackNegativo: 'pushBack(8) agrega al final, por lo que 1 sigue al frente.',
+    },
+    {
+      algoritmo: 'Priority Queue',
+      tipo: 'OrdenarBarras',
+      pregunta: 'En una cola de prioridad máxima con elementos [3, 9, 5, 1], selecciona la barra del elemento que se extraerá primero con extraerMax().',
+      respuestaCorrecta: '1',
+      dificultad: 'Facil',
+      contenido: {
+        modoSeleccion: true,
+        inicial: [3, 9, 5, 1],
+        pasoObjetivo: 'extraerMax() retira el elemento de mayor prioridad (índice 1, valor 9).',
+      },
+      feedbackPositivo: '¡Correcto! El valor máximo es 9, ubicado en el índice 1.',
+      feedbackNegativo: 'Busca el número más grande en [3, 9, 5, 1] e indica su índice (0..3).',
+    },
+    {
+      algoritmo: 'Segment Tree',
+      tipo: 'PrediccionTexto',
+      pregunta: 'Para un arreglo de 4 elementos [2, 1, 5, 3], ¿cuántos nodos en total tiene el Segment Tree binario completo (2n - 1)?',
+      respuestaCorrecta: '7',
+      dificultad: 'Medio',
+      feedbackPositivo: '¡Exacto! 4 hojas + 2 nodos internos + 1 raíz = 7 nodos (2×4 - 1).',
+      feedbackNegativo: 'Aplica la fórmula 2n - 1 con n = 4.',
     },
   ];
 
-  for (const badge of insignias) {
-    await prisma.insignia.upsert({
-      where: { nombre: badge.nombre },
-      update: badge,
-      create: badge,
-    });
-  }
-
-  // 5. Seed de Preguntas Diagnóstico (incluyendo estructuras lineales y avanzadas)
-  await prisma.preguntaDiagnostico.deleteMany();
-  const preguntas = [
-    {
-      pregunta: '¿Cuál es el tiempo de complejidad promedio de Bubble Sort?',
-      opciones: ['O(n)', 'O(n log n)', 'O(n²)', 'O(1)'],
-      indiceCorrecto: 2,
-    },
-    {
-      pregunta: '¿Qué algoritmo utiliza la técnica "Divide y Vencerás"?',
-      opciones: ['Insertion Sort', 'Merge Sort', 'Selection Sort', 'Bubble Sort'],
-      indiceCorrecto: 1,
-    },
-    {
-      pregunta: '¿Qué significa que un algoritmo de ordenamiento sea "Estable"?',
-      opciones: [
-        'Nunca arroja errores durante la ejecución.',
-        'El tiempo de ejecución siempre es el mismo.',
-        'Mantiene el orden relativo de elementos con claves iguales.',
-        'Utiliza O(1) de memoria extra.',
-      ],
-      indiceCorrecto: 2,
-    },
-    {
-      pregunta: '¿Qué principio sigue una estructura tipo Stack?',
-      opciones: ['FIFO', 'LIFO', 'Aleatorio', 'Ordenado'],
-      indiceCorrecto: 1,
-    },
-    {
-      pregunta: '¿Cuál es la diferencia principal entre un Stack y una Queue?',
-      opciones: [
-        'El Stack usa más memoria que la Queue.',
-        'La Queue es más rápida que el Stack.',
-        'En un Stack, el último en entrar es el primero en salir; en una Queue, el primero en entrar es el primero en salir.',
-        'No hay diferencia entre ambas estructuras.',
-      ],
-      indiceCorrecto: 2,
-    },
-    {
-      pregunta: '¿Qué ventaja tiene una Lista Enlazada sobre un arreglo?',
-      opciones: [
-        'Acceso más rápido por índice.',
-        'Menor uso de memoria por elemento.',
-        'Inserción y eliminación eficiente sin necesidad de redimensionar.',
-        'Búsqueda binaria disponible de forma nativa.',
-      ],
-      indiceCorrecto: 2,
-    },
-    {
-      pregunta: '¿Cuál es la complejidad temporal de la Búsqueda Binaria en el peor de los casos?',
-      opciones: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
-      indiceCorrecto: 1,
-    },
-    {
-      pregunta: '¿Cuál es el propósito principal de un Segment Tree?',
-      opciones: [
-        'Responder consultas y actualizaciones de rango en O(log n).',
-        'Ordenar un arreglo en tiempo lineal.',
-        'Estructura para implementar colas LIFO.',
-        'Búsqueda secuencial en listas enlazadas.',
-      ],
-      indiceCorrecto: 0,
-    },
+  return [
+    ...exerciseSeeds,
+    ...moreExerciseSeeds,
+    ...graphExerciseSeeds,
+    ...extraPedagogicalSeeds,
   ];
-
-  for (const p of preguntas) {
-    await prisma.preguntaDiagnostico.create({ data: p });
-  }
-
-  console.log('✅ Seed completado');
 }
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
