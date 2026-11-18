@@ -1,6 +1,7 @@
 import {
   AlgorithmDefinition,
   EngineOptions,
+  SimulationInput,
   SimulationStep,
 } from './engine.interface';
 import { BubbleSort } from './bubble-sort.engine';
@@ -10,6 +11,9 @@ import { Stack } from './stack.engine';
 import { Queue } from './queue.engine';
 import { LinkedList } from './linked-list.engine';
 import { BinarySearch, LinearSearch } from './search';
+import { BfsEngine } from './bfs.engine';
+import { DfsEngine } from './dfs.engine';
+import { DijkstraEngine } from './dijkstra.engine';
 import {
   Deque,
   HeapSort,
@@ -29,6 +33,13 @@ const ENGINES: Record<string, AlgorithmDefinition> = {
   'Heap Sort': HeapSort,
   'Binary Search': BinarySearch,
   'Linear Search': LinearSearch,
+  'Breadth-First Search': BfsEngine,
+  'Depth-First Search': DfsEngine,
+  BFS: BfsEngine,
+  DFS: DfsEngine,
+  Dijkstra: DijkstraEngine,
+  dijkstra: DijkstraEngine,
+  'Algoritmo de Dijkstra': DijkstraEngine,
   Stack: Stack,
   Queue: Queue,
   'Linked List': LinkedList,
@@ -52,7 +63,7 @@ export function getEngine(nombre: string): AlgorithmDefinition {
  */
 export async function executeWithTimeout(
   nombre: string,
-  data: number[],
+  data: SimulationInput | number[],
   options?: EngineOptions,
 ): Promise<SimulationStep[]> {
   const engine = getEngine(nombre);
@@ -63,7 +74,10 @@ export async function executeWithTimeout(
     }, 10000); // 10 segundos
 
     try {
-      const result = engine.execute(data, options);
+      const result =
+        options !== undefined
+          ? engine.execute(data, options)
+          : engine.execute(data);
       clearTimeout(timeout);
       resolve(result);
     } catch (error) {

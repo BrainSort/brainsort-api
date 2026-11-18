@@ -15,6 +15,7 @@ const CATEGORIAS_ORDEN: CategoriaAlgoritmo[] = [
   CategoriaAlgoritmo.Busqueda,
   CategoriaAlgoritmo.EstructurasLineales,
   CategoriaAlgoritmo.EstructurasArboles,
+  CategoriaAlgoritmo.Grafos,
 ];
 
 @Injectable()

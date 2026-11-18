@@ -2,7 +2,7 @@ import {
   AlgorithmDefinition,
   EngineOptions,
   SimulationMarker,
-  SimulationStep,
+  PasoArray,
 } from '../engine.interface';
 
 /**
@@ -11,7 +11,7 @@ import {
  * Genera traza paso a paso con punteros left, right, mid y marcadores descartados.
  * Complejidad: Tiempo O(log n), Espacio O(1).
  */
-export const BinarySearch: AlgorithmDefinition = {
+export const BinarySearch: AlgorithmDefinition<PasoArray> = {
   meta: {
     nombre: 'Binary Search',
     descripcion:
@@ -23,14 +23,14 @@ export const BinarySearch: AlgorithmDefinition = {
   execute(
     data: number[],
     optionsOrTarget?: EngineOptions | number,
-  ): SimulationStep[] {
+  ): PasoArray[] {
     const options: EngineOptions | undefined =
       typeof optionsOrTarget === 'number'
         ? { objetivo: optionsOrTarget }
         : optionsOrTarget;
     // Mantener inmutable el input original y ordenar de forma ascendente
     const array = [...data].sort((a, b) => a - b);
-    const steps: SimulationStep[] = [];
+    const steps: PasoArray[] = [];
 
     // Caso borde: arreglo vacío
     if (array.length === 0) {
