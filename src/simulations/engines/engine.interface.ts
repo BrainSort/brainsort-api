@@ -1,3 +1,21 @@
+export interface GrafoData {
+  nodos: string[];
+  aristas: [string, string][];
+  dirigido: boolean;
+  pesos?: Record<string, number>;
+  aristasPonderadas?: [string, string, number][];
+}
+
+export interface SimulationInput {
+  tipoOrigen: 'Predeterminado' | 'Personalizado';
+  data?: number[];
+  valores?: number[];
+  tamano?: number;
+  objetivo?: number;
+  grafo?: GrafoData;
+  nodoInicio?: string;
+}
+
 /**
  * Opciones adicionales que algunos engines aceptan (p. ej. búsqueda).
  * Todos los campos son opcionales para mantener compatibilidad.
@@ -7,15 +25,19 @@ export interface EngineOptions {
   objetivo?: number;
 }
 
-export interface AlgorithmDefinition {
+export interface AlgorithmDefinition<
+  TStep extends SimulationStep = SimulationStep,
+> {
   meta: {
     nombre: string;
     descripcion: string;
     complejidadTiempo: string;
     complejidadEspacio: string;
     categoria: string;
+    tipoEstructura?: 'array' | 'grafo';
+    requiereOrdenado?: boolean;
   };
-  execute(data: number[], options?: EngineOptions | number): SimulationStep[];
+  execute(data: any, options?: EngineOptions | number): TStep[];
 }
 
 // Tipo para el pseudocódigo almacenado en la base de datos
@@ -32,7 +54,16 @@ export type TipoOperacion =
   | 'intercambio'
   | 'insercion'
   | 'final'
-  | 'idle';
+  | 'idle'
+  | 'descarte'
+  | 'encontrado'
+  | 'no_encontrado'
+  | 'visita'
+  | 'encolar'
+  | 'desencolar'
+  | 'apilar'
+  | 'desapilar'
+  | 'relajacion';
 
 export interface SimulationMarker {
   index: number;
@@ -72,13 +103,33 @@ export interface SimulationTreeNode {
   label?: string;
 }
 
-export interface SimulationStep {
+export interface PasoBase {
   numeroPaso: number;
   tipoOperacion: TipoOperacion;
-  indicesActivos: number[]; // Índices en el arreglo que están siendo modificados o comparados
-  estadoArray: number[]; // Clon del estado del arreglo en este paso
   lineaPseudocodigo: number; // Índice base 1 correspondiente a PseudocodeLine
   contexto?: SimulationStepContext;
   marcadores?: SimulationMarker[];
+}
+
+export interface PasoArray extends PasoBase {
+  tipoEstructura?: 'array';
+  indicesActivos: number[]; // Índices en el arreglo que están siendo modificados o comparados
+  estadoArray: number[]; // Clon del estado del arreglo en este paso
+  rango?: { bajo: number; medio: number; alto: number }; // Búsqueda binaria
   nodosArbol?: SimulationTreeNode[];
 }
+
+export interface PasoGrafo extends PasoBase {
+  tipoEstructura: 'grafo';
+  nodoActual: string | null;
+  visitados: string[]; // Nodos visitados en orden cronológico
+  frontera: string[]; // Cola (BFS) o Pila (DFS)
+  aristaActiva?: [string, string];
+  grafo?: GrafoData;
+  distancias?: Record<string, number>;
+  caminoPrevio?: Record<string, string | null>;
+  nodoEvaluado?: string | null;
+  relajacion?: boolean;
+}
+
+export type SimulationStep = PasoArray | PasoGrafo;

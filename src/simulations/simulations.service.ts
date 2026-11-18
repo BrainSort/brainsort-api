@@ -75,21 +75,37 @@ export class SimulationsService {
     // 2. Validar datos
     this.validateData(conjuntoDeDatos);
 
-    // 3. Generar arreglo aleatorio si es Predeterminado
+    // 3. Generar arreglo aleatorio si es Predeterminado (cuando no es grafo)
     let data = conjuntoDeDatos.valores;
     if (conjuntoDeDatos.tipoOrigen === 'Predeterminado') {
-      data = this.generateRandomArray();
       if (algoritmo.nombre === 'Binary Search') {
-        data.sort((a, b) => a - b);
+        data = this.generateRandomArray().sort((a, b) => a - b);
+      } else if (!conjuntoDeDatos.grafo) {
+        data = this.generateRandomArray();
       }
     }
 
     // 4. Ejecutar el engine con timeout y opciones
+    const effectiveObjetivo = objetivo ?? conjuntoDeDatos.objetivo;
     let steps;
     try {
-      steps = await (objetivo !== undefined
-        ? executeWithTimeout(algoritmo.nombre, data, { objetivo })
-        : executeWithTimeout(algoritmo.nombre, data));
+      if (conjuntoDeDatos.grafo) {
+        steps = await executeWithTimeout(algoritmo.nombre, {
+          tipoOrigen: conjuntoDeDatos.tipoOrigen,
+          valores: data,
+          data,
+          tamano: data?.length,
+          objetivo: effectiveObjetivo,
+          grafo: conjuntoDeDatos.grafo,
+          nodoInicio: conjuntoDeDatos.nodoInicio,
+        });
+      } else {
+        steps = await (effectiveObjetivo !== undefined
+          ? executeWithTimeout(algoritmo.nombre, data ?? [], {
+              objetivo: effectiveObjetivo,
+            })
+          : executeWithTimeout(algoritmo.nombre, data ?? []));
+      }
     } catch (error) {
       throw new BadRequestException(
         error.message || 'Error al ejecutar la simulación',
@@ -120,19 +136,49 @@ export class SimulationsService {
         algoritmo.pseudocodigo as unknown as RawPseudocodeLine[],
       ),
       totalPasos: steps.length,
-      pasos: steps.map((step) => ({
-        numeroPaso: step.numeroPaso,
-        tipoOperacion: step.tipoOperacion,
-        indicesActivos: step.indicesActivos,
-        estadoArray: step.estadoArray,
-        lineaPseudocodigo: step.lineaPseudocodigo,
-        contexto: step.contexto,
-        marcadores: this.buildMarkers(
-          step,
-          algoritmo.visualizacion as VisualizationConfig | null,
-        ),
-        nodosArbol: step.nodosArbol,
-      })),
+      pasos: steps.map((step) => {
+        if ('tipoEstructura' in step && step.tipoEstructura === 'grafo') {
+          return {
+            numeroPaso: step.numeroPaso,
+            tipoOperacion: step.tipoOperacion,
+            tipoEstructura: 'grafo' as const,
+            nodoActual: step.nodoActual,
+            visitados: step.visitados,
+            frontera: step.frontera,
+            aristaActiva: step.aristaActiva,
+            ...(step.grafo ? { grafo: step.grafo } : {}),
+            ...(step.distancias ? { distancias: step.distancias } : {}),
+            ...(step.caminoPrevio ? { caminoPrevio: step.caminoPrevio } : {}),
+            ...(step.nodoEvaluado !== undefined
+              ? { nodoEvaluado: step.nodoEvaluado }
+              : {}),
+            ...(step.relajacion !== undefined
+              ? { relajacion: step.relajacion }
+              : {}),
+            lineaPseudocodigo: step.lineaPseudocodigo,
+            contexto: step.contexto,
+            marcadores: this.buildMarkers(
+              step,
+              algoritmo.visualizacion as VisualizationConfig | null,
+            ),
+          };
+        }
+
+        const arrayStep = step;
+        return {
+          numeroPaso: arrayStep.numeroPaso,
+          tipoOperacion: arrayStep.tipoOperacion,
+          indicesActivos: arrayStep.indicesActivos ?? [],
+          estadoArray: arrayStep.estadoArray ?? [],
+          lineaPseudocodigo: arrayStep.lineaPseudocodigo,
+          contexto: arrayStep.contexto,
+          marcadores: this.buildMarkers(
+            step,
+            algoritmo.visualizacion as VisualizationConfig | null,
+          ),
+          nodosArbol: arrayStep.nodosArbol,
+        };
+      }),
     };
   }
 
@@ -164,7 +210,12 @@ export class SimulationsService {
     const lineLabels = labelsByLine[String(step.lineaPseudocodigo)] ?? [];
     const markers: SimulationMarker[] = [...(step.marcadores ?? [])];
 
-    step.indicesActivos.forEach((index, position) => {
+    const indicesActivos =
+      'indicesActivos' in step && Array.isArray(step.indicesActivos)
+        ? step.indicesActivos
+        : [];
+
+    indicesActivos.forEach((index, position) => {
       if (markers.some((marker) => marker.index === index)) return;
       markers.push({
         index,
@@ -175,7 +226,7 @@ export class SimulationsService {
     });
 
     step.contexto?.waitingIndices?.forEach((index) => {
-      if (step.indicesActivos.includes(index)) return;
+      if (indicesActivos.includes(index)) return;
       if (markers.some((marker) => marker.index === index)) return;
       markers.push({
         index,
@@ -191,7 +242,22 @@ export class SimulationsService {
   private validateData(
     conjuntoDeDatos: CreateSimulationDto['conjuntoDeDatos'],
   ): void {
-    const { valores, tamano } = conjuntoDeDatos;
+    const { valores, tamano, grafo } = conjuntoDeDatos;
+
+    if (grafo) {
+      if (
+        !grafo.nodos ||
+        !Array.isArray(grafo.nodos) ||
+        grafo.nodos.length < 2
+      ) {
+        throw new BadRequestException('El grafo debe tener al menos 2 nodos');
+      }
+      return;
+    }
+
+    if (!valores || !Array.isArray(valores)) {
+      throw new BadRequestException('Los valores no pueden ser nulos');
+    }
 
     // Validar que no haya valores nulos
     if (valores.some((v) => v === null || v === undefined)) {
@@ -206,7 +272,7 @@ export class SimulationsService {
     }
 
     // Validar que tamaño coincida con valores.length
-    if (tamano !== valores.length) {
+    if (tamano !== undefined && tamano !== valores.length) {
       throw new BadRequestException(
         'El tamaño debe coincidir con la cantidad de valores',
       );
