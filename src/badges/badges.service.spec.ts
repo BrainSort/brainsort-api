@@ -350,6 +350,64 @@ describe('BadgesService', () => {
         1,
       );
     });
+
+    it('should award "Organizar es bueno" when completing 1 data structure simulation', async () => {
+      const dsBadge = {
+        id: 'b-ds-first',
+        nombre: 'Organizar es bueno',
+        descripcion: 'Dominaste tu primera simulación de Estructura de Datos',
+        imagen: '/badges/data-structure-first.svg',
+        criterioDesbloqueo: 'Completar 1 simulación de Estructura de Datos',
+        categoria: 'Estructuras',
+      };
+
+      mockPrismaService.insignia.findMany.mockResolvedValue([dsBadge]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        id: 'prog1',
+        usuarioId: 'user1',
+        puntosTotales: 20,
+        rachaDias: 0,
+      });
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
+      mockPrismaService.sesionSimulacion.count
+        .mockResolvedValueOnce(1) // simulacionesCompletadas
+        .mockResolvedValueOnce(1); // simulacionesEstructuraDatosCompletadas
+      mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
+      mockPrismaService.algoritmo.count.mockResolvedValue(5);
+
+      const awarded = await service.checkAndAward('user1');
+
+      expect(awarded).toHaveLength(1);
+      expect(awarded[0].nombre).toBe('Organizar es bueno');
+    });
+
+    it('should award "El comienzo de algo grande" when rachaDias >= 1', async () => {
+      const streak1Badge = {
+        id: 'b-streak-1',
+        nombre: 'El comienzo de algo grande',
+        descripcion: '¡Encendiste tu primera racha de 1 día!',
+        imagen: '/badges/streak-1.svg',
+        criterioDesbloqueo: 'rachaDias >= 1',
+        categoria: 'Constancia',
+      };
+
+      mockPrismaService.insignia.findMany.mockResolvedValue([streak1Badge]);
+      mockPrismaService.progresoUsuario.findUnique.mockResolvedValue({
+        id: 'prog1',
+        usuarioId: 'user1',
+        puntosTotales: 10,
+        rachaDias: 1,
+      });
+      mockPrismaService.progresoInsignia.findMany.mockResolvedValue([]);
+      mockPrismaService.sesionSimulacion.count.mockResolvedValue(0);
+      mockPrismaService.sesionSimulacion.findMany.mockResolvedValue([]);
+      mockPrismaService.algoritmo.count.mockResolvedValue(5);
+
+      const awarded = await service.checkAndAward('user1');
+
+      expect(awarded).toHaveLength(1);
+      expect(awarded[0].nombre).toBe('El comienzo de algo grande');
+    });
   });
 
   describe('invalidateCache', () => {
