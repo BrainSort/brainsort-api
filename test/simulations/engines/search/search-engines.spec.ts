@@ -2,13 +2,13 @@ import {
   BinarySearch,
   LinearSearch,
 } from '../../../../src/simulations/engines/search';
-import { SimulationStep } from '../../../../src/simulations/engines/engine.interface';
+import { PasoArray } from '../../../../src/simulations/engines/engine.interface';
 
 /**
  * Valida la consistencia estructural e inmutabilidad de una traza de pasos.
  */
 function assertConsistentStepTrace(
-  steps: SimulationStep[],
+  steps: PasoArray[],
   expectedArraySnapshot: number[],
 ): void {
   expect(Array.isArray(steps)).toBe(true);

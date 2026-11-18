@@ -2,7 +2,7 @@ import {
   AlgorithmDefinition,
   EngineOptions,
   SimulationMarker,
-  SimulationStep,
+  PasoArray,
 } from '../engine.interface';
 
 /**
@@ -10,7 +10,7 @@ import {
  * Cumple con DoD: trazas estructuradas, marcadores de puntero e índice actual.
  * Complejidad: Tiempo O(N), Espacio O(1).
  */
-export const LinearSearch: AlgorithmDefinition = {
+export const LinearSearch: AlgorithmDefinition<PasoArray> = {
   meta: {
     nombre: 'Linear Search',
     descripcion:
@@ -22,13 +22,13 @@ export const LinearSearch: AlgorithmDefinition = {
   execute(
     data: number[],
     optionsOrTarget?: EngineOptions | number,
-  ): SimulationStep[] {
+  ): PasoArray[] {
     const options: EngineOptions | undefined =
       typeof optionsOrTarget === 'number'
         ? { objetivo: optionsOrTarget }
         : optionsOrTarget;
     const array = [...data];
-    const steps: SimulationStep[] = [];
+    const steps: PasoArray[] = [];
 
     // Si data está vacío (caso borde del motor)
     if (array.length === 0) {

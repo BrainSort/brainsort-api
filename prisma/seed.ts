@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 type ExerciseSeed = {
   algoritmo: string;
-  tipo: 'PrediccionTexto' | 'CompletarPseudocodigo' | 'OrdenarBarras';
+  tipo: 'PrediccionTexto' | 'CompletarPseudocodigo' | 'OrdenarBarras' | 'SecuenciaGrafos';
   pregunta: string;
   respuestaCorrecta: string;
   dificultad: 'Facil' | 'Medio' | 'Dificil';
@@ -80,6 +80,31 @@ function visualizationConfig(nombre: string): Prisma.InputJsonValue {
         7: ['nodo'],
       },
       recursion: { waitingRole: 'esperaRecursion', waitingLabel: 'espera' },
+    },
+    'Breadth-First Search': {
+      roles: {
+        ...visualizationRoles,
+        visita: { color: '#F5A623', label: 'visitando' },
+        frontera: { color: '#00D4FF', label: 'cola' },
+      },
+      lineLabels: { 3: ['u'], 4: ['v'], 6: ['v'] },
+    },
+    'Depth-First Search': {
+      roles: {
+        ...visualizationRoles,
+        visita: { color: '#F5A623', label: 'visitando' },
+        frontera: { color: '#FF8C00', label: 'pila' },
+      },
+      lineLabels: { 3: ['u'], 5: ['v'], 6: ['v'] },
+    },
+    Dijkstra: {
+      roles: {
+        ...visualizationRoles,
+        visita: { color: '#F5A623', label: 'visitando' },
+        frontera: { color: '#00D4FF', label: 'cola prioridad' },
+        relajacion: { color: '#00D4FF', label: 'relajación' },
+      },
+      lineLabels: { 4: ['u'], 7: ['v'], 8: ['v'] },
     },
   };
 
@@ -408,6 +433,60 @@ async function main() {
         { numero: 7, codigo: '  retornar tree[nodo]' },
       ],
     },
+    {
+      nombre: 'Breadth-First Search',
+      descripcion: 'Recorre un grafo por niveles usando una cola FIFO, explorando todos los vecinos inmediatos antes de descender.',
+      dificultad: 'Medio' as const,
+      complejidadTiempo: 'O(V + E)',
+      complejidadEspacio: 'O(V)',
+      categoria: 'Grafos' as const,
+      tags: ['Grafos', 'Recorrido', 'BFS', 'Cola'],
+      pseudocodigo: [
+        { numero: 1, codigo: 'cola = [nodoInicio]; visitados = {nodoInicio}' },
+        { numero: 2, codigo: 'Mientras cola no esté vacía:' },
+        { numero: 3, codigo: '  u = desencolar()' },
+        { numero: 4, codigo: '  Para cada vecino v de u:' },
+        { numero: 5, codigo: '    Si v no en visitados:' },
+        { numero: 6, codigo: '      visitados.agregar(v); encolar(v)' },
+      ],
+    },
+    {
+      nombre: 'Depth-First Search',
+      descripcion: 'Recorre un grafo descendiendo lo más profundo posible por cada rama antes de retroceder, usando una pila.',
+      dificultad: 'Medio' as const,
+      complejidadTiempo: 'O(V + E)',
+      complejidadEspacio: 'O(V)',
+      categoria: 'Grafos' as const,
+      tags: ['Grafos', 'Recorrido', 'DFS', 'Pila'],
+      pseudocodigo: [
+        { numero: 1, codigo: 'pila = [nodoInicio]; visitados = {}' },
+        { numero: 2, codigo: 'Mientras pila no esté vacía:' },
+        { numero: 3, codigo: '  u = desapilar()' },
+        { numero: 4, codigo: '  Si u no en visitados: visitados.agregar(u)' },
+        { numero: 5, codigo: '  Para cada vecino v de u:' },
+        { numero: 6, codigo: '    Si v no en visitados: apilar(v)' },
+      ],
+    },
+    {
+      nombre: 'Dijkstra',
+      descripcion: 'Calcula el camino mínimo desde un nodo origen a todos los demás en un grafo ponderado con pesos no negativos.',
+      dificultad: 'Medio' as const,
+      complejidadTiempo: 'O((V + E) log V)',
+      complejidadEspacio: 'O(V)',
+      categoria: 'Grafos' as const,
+      tags: ['Grafos', 'Camino Mínimo', 'Dijkstra', 'Cola de Prioridad'],
+      pseudocodigo: [
+        { numero: 1, codigo: 'dist[s] = 0; dist[v] = ∞ para v ≠ s' },
+        { numero: 2, codigo: 'PQ = prioridad([(s, 0)]); visitados = {}' },
+        { numero: 3, codigo: 'Mientras PQ no esté vacía:' },
+        { numero: 4, codigo: '  u = PQ.extraerMinimo()' },
+        { numero: 5, codigo: '  Si u ya en visitados: continuar; visitados.agregar(u)' },
+        { numero: 6, codigo: '  Para cada vecino v de u (orden ascendente):' },
+        { numero: 7, codigo: '    Si dist[u] + peso(u, v) < dist[v]:' },
+        { numero: 8, codigo: '      dist[v] = dist[u] + peso(u, v); PQ.insertar((v, dist[v]))' },
+        { numero: 9, codigo: 'Caminos mínimos calculados → FIN' },
+      ],
+    },
   ];
 
   for (const algo of algoritmosExpandidos) {
@@ -606,7 +685,200 @@ async function main() {
     },
   ]);
 
-  for (const seed of [...exerciseSeeds, ...moreExerciseSeeds]) {
+  const graphExerciseSeeds: ExerciseSeed[] = [
+    {
+      algoritmo: 'Breadth-First Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Qué estructura de datos utiliza BFS para explorar los nodos nivel por nivel?',
+      respuestaCorrecta: 'Cola (FIFO)',
+      dificultad: 'Facil',
+      opciones: ['Cola (FIFO)', 'Pila (LIFO)', 'Arreglo estático', 'Árbol binario'],
+      contenido: { antes: 'Estructura principal: ', despues: '' },
+      feedbackPositivo: '¡Correcto! BFS utiliza una cola FIFO para recorrer los nodos en orden de distancia.',
+      feedbackNegativo: 'Recuerda que para explorar primero los nodos más cercanos se necesita una cola FIFO.',
+    },
+    {
+      algoritmo: 'Breadth-First Search',
+      tipo: 'SecuenciaGrafos',
+      pregunta: 'Dado el grafo con nodos [A, B, C, D] y aristas [A-B, A-C, B-D, C-D], ¿cuál es el orden de visita iniciando en A explorando vecinos en orden alfabético?',
+      respuestaCorrecta: JSON.stringify(['A', 'B', 'C', 'D']),
+      dificultad: 'Medio',
+      contenido: {
+        grafo: {
+          nodos: ['A', 'B', 'C', 'D'],
+          aristas: [['A', 'B'], ['A', 'C'], ['B', 'D'], ['C', 'D']],
+          dirigido: false,
+        },
+        nodoInicio: 'A',
+        secuenciaEsperada: ['A', 'B', 'C', 'D'],
+      },
+      feedbackPositivo: '¡Exacto! Desde A se visitan sus vecinos B y C, y luego se visita D desde la cola.',
+      feedbackNegativo: 'Recuerda que BFS visita todos los vecinos directos antes de pasar al siguiente nivel.',
+    },
+    {
+      algoritmo: 'Breadth-First Search',
+      tipo: 'SecuenciaGrafos',
+      pregunta: 'Dado el grafo estrella con nodos [A, B, C, D, E] donde el nodo central A está conectado a [B, C, D, E], si iniciamos en A y los vecinos se encolan alfabéticamente, ¿cuál es la secuencia completa de visita BFS?',
+      respuestaCorrecta: JSON.stringify(['A', 'B', 'C', 'D', 'E']),
+      dificultad: 'Facil',
+      contenido: {
+        grafo: {
+          nodos: ['A', 'B', 'C', 'D', 'E'],
+          aristas: [['A', 'B'], ['A', 'C'], ['A', 'D'], ['A', 'E']],
+          dirigido: false,
+        },
+        nodoInicio: 'A',
+        secuenciaEsperada: ['A', 'B', 'C', 'D', 'E'],
+      },
+      feedbackPositivo: '¡Exacto! Al estar todos los nodos en el nivel 1 respecto al centro A, BFS los encola y visita en orden alfabético.',
+      feedbackNegativo: 'En BFS todos los vecinos directos de la raíz forman el primer nivel y se exploran antes de cualquier nivel subsecuente.',
+    },
+    {
+      algoritmo: 'Breadth-First Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'En un grafo no ponderado, ¿qué propiedad asegura BFS respecto a los caminos entre el origen y cualquier otro nodo visitado?',
+      respuestaCorrecta: 'Camino con menor número de aristas',
+      dificultad: 'Medio',
+      opciones: [
+        'Camino con menor número de aristas',
+        'Camino con mayor cantidad de saltos',
+        'Orden topológico inverso',
+        'Detección de componentes fuertemente conexas',
+      ],
+      contenido: { antes: 'Garantía de BFS: Encuentra el ', despues: ' desde el origen.' },
+      feedbackPositivo: '¡Correcto! Al avanzar por ondas concéntricas de distancia k, k+1, BFS encuentra la ruta con el menor número de saltos.',
+      feedbackNegativo: 'La exploración por niveles garantiza encontrar el camino más corto en cantidad de aristas en grafos no ponderados.',
+    },
+    {
+      algoritmo: 'Depth-First Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Qué estructura de datos permite implementar DFS de forma iterativa?',
+      respuestaCorrecta: 'Pila (LIFO)',
+      dificultad: 'Facil',
+      opciones: ['Pila (LIFO)', 'Cola (FIFO)', 'Lista circular', 'Cola de prioridad'],
+      contenido: { antes: 'Estructura iterativa: ', despues: '' },
+      feedbackPositivo: '¡Correcto! Una pila LIFO reproduce el orden del backtracking en profundidad.',
+      feedbackNegativo: 'DFS desciende por una rama y retrocede usando una pila LIFO o la pila de llamadas.',
+    },
+    {
+      algoritmo: 'Depth-First Search',
+      tipo: 'SecuenciaGrafos',
+      pregunta: 'Dado el grafo con nodos [A, B, C, D] y aristas [A-B, B-C, C-D, A-D], ¿cuál es la secuencia de visita en profundidad iniciando en A si se visita primero B?',
+      respuestaCorrecta: JSON.stringify(['A', 'B', 'C', 'D']),
+      dificultad: 'Medio',
+      contenido: {
+        grafo: {
+          nodos: ['A', 'B', 'C', 'D'],
+          aristas: [['A', 'B'], ['B', 'C'], ['C', 'D'], ['A', 'D']],
+          dirigido: false,
+        },
+        nodoInicio: 'A',
+        secuenciaEsperada: ['A', 'B', 'C', 'D'],
+      },
+      feedbackPositivo: '¡Correcto! DFS profundiza por A -> B -> C -> D antes de retroceder.',
+      feedbackNegativo: 'DFS sigue la cadena de vecinos hasta que no puede avanzar más profundo.',
+    },
+    {
+      algoritmo: 'Depth-First Search',
+      tipo: 'SecuenciaGrafos',
+      pregunta: 'Dado el grafo con nodos [A, B, C, D, E] y aristas [A-B, B-C, A-D, D-E], si iniciamos en A y el orden de exploración prioriza B antes que D, ¿cuál es la secuencia DFS completa?',
+      respuestaCorrecta: JSON.stringify(['A', 'B', 'C', 'D', 'E']),
+      dificultad: 'Medio',
+      contenido: {
+        grafo: {
+          nodos: ['A', 'B', 'C', 'D', 'E'],
+          aristas: [['A', 'B'], ['B', 'C'], ['A', 'D'], ['D', 'E']],
+          dirigido: false,
+        },
+        nodoInicio: 'A',
+        secuenciaEsperada: ['A', 'B', 'C', 'D', 'E'],
+      },
+      feedbackPositivo: '¡Muy bien! DFS profundiza primero toda la rama A -> B -> C, hace backtracking hasta A, y luego profundiza por D -> E.',
+      feedbackNegativo: 'DFS agota completamente la profundidad de una rama antes de retroceder por backtracking hacia la siguiente rama.',
+    },
+    {
+      algoritmo: 'Depth-First Search',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: 'En el pseudocódigo de DFS, ¿qué comprobación es indispensable antes de apilar o llamar recursivamente a un vecino v?',
+      respuestaCorrecta: 'v no en visitados',
+      dificultad: 'Facil',
+      opciones: [
+        'v no en visitados',
+        'v == nodoInicio',
+        'cola.tamano() > 0',
+        'dist[v] == infinito',
+      ],
+      contenido: { antes: 'Para cada vecino v de u: Si ', despues: ': visitados.agregar(v); apilar(v)' },
+      feedbackPositivo: '¡Exacto! El conjunto de visitados previene ciclos infinitos en grafos con bucles o múltiples caminos.',
+      feedbackNegativo: 'Para evitar procesar nodos ya explorados o caer en ciclos infinitos, siempre se valida que v no esté en visitados.',
+    },
+    {
+      algoritmo: 'Dijkstra',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Cuál es la condición de relajación en Dijkstra que permite actualizar la distancia mínima hacia un vecino v?',
+      respuestaCorrecta: 'dist[u] + peso(u, v) < dist[v]',
+      dificultad: 'Medio',
+      opciones: [
+        'dist[u] + peso(u, v) < dist[v]',
+        'dist[u] - peso(u, v) > dist[v]',
+        'dist[v] == 0',
+        'peso(u, v) < dist[u]',
+      ],
+      contenido: { antes: 'Si ', despues: ': dist[v] = dist[u] + peso(u, v)' },
+      feedbackPositivo: '¡Excelente! Si la distancia acumulada hasta u más el peso de la arista es menor a la distancia conocida hacia v, se actualiza el camino mínimo.',
+      feedbackNegativo: 'La regla de relajación de Dijkstra evalúa si transitar por u ofrece un camino más corto hacia v: dist[u] + peso(u, v) < dist[v].',
+    },
+    {
+      algoritmo: 'Dijkstra',
+      tipo: 'SecuenciaGrafos',
+      pregunta: 'Dado el grafo con nodos [A, B, C, D] y aristas ponderadas A-B (peso 1), A-C (peso 4), B-C (peso 2), C-D (peso 1), ¿cuál es el orden en que Dijkstra visita y confirma definitivamente los nodos iniciando en A?',
+      respuestaCorrecta: JSON.stringify(['A', 'B', 'C', 'D']),
+      dificultad: 'Dificil',
+      contenido: {
+        grafo: {
+          nodos: ['A', 'B', 'C', 'D'],
+          aristas: [['A', 'B'], ['A', 'C'], ['B', 'C'], ['C', 'D']],
+          dirigido: false,
+        },
+        nodoInicio: 'A',
+        secuenciaEsperada: ['A', 'B', 'C', 'D'],
+      },
+      feedbackPositivo: '¡Exacto! Distancias mínimas: A(0), B(1), C(3 por la ruta A-B-C) y D(4 por A-B-C-D). Los nodos se extraen ordenados por su distancia mínima.',
+      feedbackNegativo: 'Dijkstra procesa siempre el nodo no visitado con menor distancia acumulada: A (0), luego B (1), luego C (3 vía B) y finalmente D (4 vía C).',
+    },
+    {
+      algoritmo: 'Dijkstra',
+      tipo: 'CompletarPseudocodigo',
+      pregunta: '¿Qué estructura de datos permite a Dijkstra extraer en O(log V) el nodo no visitado con menor distancia acumulada?',
+      respuestaCorrecta: 'Cola de Prioridad (Min-Heap)',
+      dificultad: 'Medio',
+      opciones: [
+        'Cola de Prioridad (Min-Heap)',
+        'Pila LIFO',
+        'Cola FIFO estándar',
+        'Arreglo sin ordenar',
+      ],
+      contenido: { antes: 'Estructura para extraer distancia mínima: ', despues: '' },
+      feedbackPositivo: '¡Correcto! Una Cola de Prioridad basada en Min-Heap extrae el elemento con menor clave en tiempo logarítmico O(log V).',
+      feedbackNegativo: 'Dijkstra requiere obtener eficientemente el vértice con menor distancia tentativa, para lo cual la Cola de Prioridad (Min-Heap) es la estructura óptima.',
+    },
+    {
+      algoritmo: 'Dijkstra',
+      tipo: 'OrdenarBarras',
+      pregunta: 'Tras procesar el nodo origen con dist[A] = 0, las distancias tentativas a los vecinos no visitados son: B: 5, C: 2, D: 8. Selecciona la barra correspondiente al nodo con menor distancia que el algoritmo extraerá en el siguiente paso.',
+      respuestaCorrecta: '1',
+      dificultad: 'Medio',
+      contenido: {
+        modoSeleccion: true,
+        inicial: [5, 2, 8],
+        pasoObjetivo: 'Selecciona la barra del nodo C (distancia 2, índice 1) por ser la mínima tentativa.',
+      },
+      feedbackPositivo: '¡Bien hecho! Dijkstra es voraz (greedy) y extrae siempre el nodo con menor distancia tentativa (índice 1, valor 2).',
+      feedbackNegativo: 'Entre los valores pendientes [5, 2, 8], el menor es 2 en el índice 1.',
+    },
+  ];
+
+  for (const seed of [...exerciseSeeds, ...moreExerciseSeeds, ...graphExerciseSeeds]) {
     await ensureExercise(seed);
   }
 
