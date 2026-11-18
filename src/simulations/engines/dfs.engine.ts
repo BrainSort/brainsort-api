@@ -6,13 +6,14 @@ import {
 } from './engine.interface';
 
 const DEFAULT_GRAFO: GrafoData = {
-  nodos: ['A', 'B', 'C', 'D', 'E', 'F'],
+  nodos: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
   aristas: [
     ['A', 'B'],
     ['A', 'C'],
     ['B', 'D'],
     ['B', 'E'],
     ['C', 'F'],
+    ['C', 'G'],
   ],
   dirigido: false,
 };

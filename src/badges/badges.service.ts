@@ -16,6 +16,7 @@ interface BadgeRule {
   criterio: string;
   meetsRequirement: (data: {
     simulacionesCompletadas: number;
+    simulacionesEstructuraDatosCompletadas: number;
     algoritmosVistos: number;
     rachaDias: number;
     algoritmosCompletadosOrdenamiento: number;
@@ -68,6 +69,28 @@ export class BadgesService {
         meetsRequirement: (data) =>
           data.totalOrdenamiento > 0 &&
           data.algoritmosCompletadosOrdenamiento >= data.totalOrdenamiento,
+      },
+    ],
+    [
+      'Completar 1 simulación de Estructura de Datos',
+      {
+        criterio: 'Completar 1 simulación de Estructura de Datos',
+        meetsRequirement: (data) =>
+          data.simulacionesEstructuraDatosCompletadas >= 1,
+      },
+    ],
+    [
+      'rachaDias >= 1',
+      {
+        criterio: 'rachaDias >= 1',
+        meetsRequirement: (data) => data.rachaDias >= 1,
+      },
+    ],
+    [
+      'rachaDías >= 1',
+      {
+        criterio: 'rachaDías >= 1',
+        meetsRequirement: (data) => data.rachaDias >= 1,
       },
     ],
   ]);
@@ -232,9 +255,21 @@ export class BadgesService {
     }
 
     // Obtener datos para evaluación de reglas
-    const simulacionesCompletadas = await this.prisma.sesionSimulacion.count({
-      where: { usuarioId, completada: true },
-    });
+    const simulacionesCompletadas =
+      (await this.prisma.sesionSimulacion.count({
+        where: { usuarioId, completada: true },
+      })) ?? 0;
+
+    const simulacionesEstructuraDatosCompletadas =
+      (await this.prisma.sesionSimulacion.count({
+        where: {
+          usuarioId,
+          completada: true,
+          algoritmo: {
+            categoria: { in: ['EstructurasLineales', 'EstructurasArboles'] },
+          },
+        },
+      })) ?? 0;
 
     const sesionesAlgoritmos = await this.prisma.sesionSimulacion.findMany({
       where: { usuarioId },
@@ -262,6 +297,7 @@ export class BadgesService {
 
     const data = {
       simulacionesCompletadas,
+      simulacionesEstructuraDatosCompletadas,
       algoritmosVistos,
       rachaDias: progreso.rachaDias,
       algoritmosCompletadosOrdenamiento,
